@@ -1,5 +1,5 @@
 
-import menu_1 from './menu_1.png'
+import menu_1 from './menu_1.jpg'
 import menu_2 from './menu_2.jpg'
 import menu_3 from './menu_3.jpg'
 import menu_4 from './menu_4.png'
