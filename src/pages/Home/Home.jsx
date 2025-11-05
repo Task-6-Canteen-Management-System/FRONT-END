@@ -4,7 +4,7 @@ import Header from '../../components/Header/Header'
 import ExploreMenu from '../../components/ExploreMenu/ExploreMenu'
 import SearchBar from '../../components/SearchBar/SearchBar'
 import FoodDisplay from '../../components/FoodDisplay/FoodDisplay'
-import SpecialDishofTheDay from '../../components/SpecialDishofTheDay/SpecialDishofTheDay'
+import SpecialDishOfTheDay from '../../components/SpecialDishOfTheDay/SpecialDishOfTheDay'
 import AppDownload from '../../components/AppDownload/AppDownload'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { StoreContext } from '../../context/StoreContext'
@@ -46,7 +46,7 @@ const Home = () => {
         category={category}
         setCategory={setCategory}
       />
-      <SpecialDishofTheDay />
+      <SpecialDishOfTheDay />
       <FoodDisplay category={category} searchQuery={searchQuery}/>
       <AppDownload/>
       
