@@ -1,16 +1,95 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import "./cart.css";
 import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
+
+const CartItemRow = ({ item, quantity, notes, updateNotes, removeFromCart }) => {
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [editNotes, setEditNotes] = useState(notes);
+  const { url } = useContext(StoreContext);
+
+  const handleSaveNotes = () => {
+    updateNotes(editNotes);
+    setIsEditingNotes(false);
+  };
+
+  return (
+    <div>
+      <div className="cart-items-title cart-items-item">
+        <img src={url+"/images/"+item.image} alt={item.name} />
+        <p>{item.name}</p>
+        <p>₹{item.price}</p>
+        <p>{quantity}</p>
+        <p>₹{item.price * quantity}</p>
+        <div className="cart-notes-cell">
+          {isEditingNotes ? (
+            <div className="cart-notes-edit">
+              <textarea
+                value={editNotes}
+                onChange={(e) => setEditNotes(e.target.value)}
+                placeholder="Add notes..."
+                rows="2"
+                className="cart-notes-input"
+                autoFocus
+              />
+              <div className="cart-notes-actions">
+                <button
+                  type="button"
+                  className="cart-notes-save"
+                  onClick={handleSaveNotes}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className="cart-notes-cancel"
+                  onClick={() => {
+                    setEditNotes(notes);
+                    setIsEditingNotes(false);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="cart-notes-display">
+              {notes ? (
+                <span className="cart-notes-text" title={notes}>
+                  {notes.length > 30 ? notes.substring(0, 30) + "..." : notes}
+                </span>
+              ) : (
+                <span className="cart-notes-empty">No notes</span>
+              )}
+              <button
+                type="button"
+                className="cart-notes-edit-btn"
+                onClick={() => setIsEditingNotes(true)}
+                title="Edit customization notes"
+              >
+                ✏️
+              </button>
+            </div>
+          )}
+        </div>
+        <p onClick={removeFromCart} className="cross">
+          x
+        </p>
+      </div>
+      <hr />
+    </div>
+  );
+};
 
 const cart = () => {
   const {
     food_list,
     cartItems,
-    setCartItems,
-    addToCart,
     removeFromCart,
     getTotalCartAmount,
+    getCartQuantity,
+    getCartNotes,
+    updateCartNotes,
     url
   } = useContext(StoreContext);
 
@@ -25,28 +104,26 @@ const cart = () => {
           <p>Price</p>
           <p>Quantity</p>
           <p>Total</p>
+          <p>Customization</p>
           <p>Remove</p>
         </div>
         <br />
         <hr />
         {food_list.map((item, index) => {
-          if (cartItems[item._id] > 0) {
+          const quantity = getCartQuantity(item._id);
+          if (quantity > 0) {
             return (
-              <div>
-                <div className="cart-items-title cart-items-item">
-                  <img src={url+"/images/"+item.image} alt="" />
-                  <p>{item.name}</p>
-                  <p>${item.price}</p>
-                  <p>{cartItems[item._id]}</p>
-                  <p>${item.price * cartItems[item._id]}</p>
-                  <p onClick={() => removeFromCart(item._id)} className="cross">
-                    x
-                  </p>
-                </div>
-                <hr />
-              </div>
+              <CartItemRow
+                key={item._id || index}
+                item={item}
+                quantity={quantity}
+                notes={getCartNotes(item._id)}
+                updateNotes={(notes) => updateCartNotes(item._id, notes)}
+                removeFromCart={() => removeFromCart(item._id)}
+              />
             );
           }
+          return null;
         })}
       </div>
       <div className="cart-bottom">
@@ -55,17 +132,17 @@ const cart = () => {
           <div>
             <div className="cart-total-details">
               <p>Subtotals</p>
-              <p>${getTotalCartAmount()}</p>
+              <p>₹{getTotalCartAmount()}</p>
             </div>
             <hr />
             <div className="cart-total-details">
               <p>Delivery Fee</p>
-              <p>${getTotalCartAmount()===0?0:2}</p>
+              <p>₹{getTotalCartAmount()===0?0:2}</p>
             </div>
             <hr />
             <div className="cart-total-details">
               <b>Total</b>
-              <b>${getTotalCartAmount()===0?0:getTotalCartAmount()+2}</b>
+              <b>₹{getTotalCartAmount()===0?0:getTotalCartAmount()+2}</b>
             </div>
           </div>
           <button onClick={()=>navigate('/order')}>PROCEED TO CHECKOUT</button>
