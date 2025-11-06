@@ -5,7 +5,7 @@ import { assets } from '../../assets/frontend_assets/assets'
 const AppDownload = () => {
   return (
     <div className='app-download' id='app-download'>
-      <p>For Better Experience Download <br/>CMS App</p>
+      <p>For Better Experience Download <br/>Canteeno Mobile App</p>
       <div className="app-download-platforms">
         <img src={assets.play_store} alt="" />
         <img src={assets.app_store} alt="" />

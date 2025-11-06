@@ -136,7 +136,7 @@ const Cart = () => {
             </div>
             <hr />
             <div className="cart-total-details">
-              <p>Delivery Fee</p>
+              <p>Canteeno Platform Fee</p>
               <p>₹{getTotalCartAmount()===0?0:2}</p>
             </div>
             <hr />
