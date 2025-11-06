@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import "./cart.css";
+import "./Cart.css";
 import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
 
@@ -81,7 +81,7 @@ const CartItemRow = ({ item, quantity, notes, updateNotes, removeFromCart }) => 
   );
 };
 
-const cart = () => {
+const Cart = () => {
   const {
     food_list,
     cartItems,
@@ -161,4 +161,4 @@ const cart = () => {
   );
 };
 
-export default cart;
+export default Cart;
