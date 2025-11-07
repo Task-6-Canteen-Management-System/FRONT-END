@@ -1,118 +1,201 @@
-.login-popup{
-    position: absolute;
-    z-index: 1;
-    width: 100%;
-    height: 100%;
-    background-color: #00000090;
-    display: grid; 
+
+.login-popup {
+  position: fixed; 
+  inset: 0;
+  z-index: 999;
+  width: 100%;
+  height: 100%;
+  background-color: #00000090;
+  display: grid;
+  place-items: center;
+  animation: fadeIn 0.3s ease-in;
 }
-.login-popup-container{
-    place-self: center;
-    width:max(23vw,330px);
-    color: #808080;
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    padding: 25px 30px;
-    border-radius: 8px;
+
+
+.login-popup-container {
+  width: min(90%, 400px);
+  color: #555;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 30px 25px;
+  border-radius: 12px;
+  font-size: 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: scaleUp 0.3s ease-out;
+}
+
+
+.close-btn {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #444;
+  transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+  color: #d96f32;
+}
+
+/* ====== TITLES ====== */
+.login-popup-container h2 {
+  text-align: center;
+  color: #111;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.login-form input,
+.role-select select {
+  outline: none;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.login-form input:focus,
+.role-select select:focus {
+  border-color: #d96f32;
+}
+
+
+.role-select {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-weight: 500;
+}
+
+.role-select label {
+  color: #444;
+}
+
+
+.btn-submit {
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  color: white;
+  background-color: #d96f32;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-submit:hover {
+  background-color: #c35f2d;
+}
+
+
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 6px;
+  background-color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.google-btn:hover {
+  border-color: #d96f32;
+  color: #d96f32;
+}
+
+
+.divider {
+  text-align: center;
+  font-size: 13px;
+  color: #777;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #ccc;
+}
+
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}
+
+
+.toggle-text {
+  text-align: center;
+  color: #555;
+  font-size: 13px;
+}
+
+.toggle-text span {
+  color: #d96f32;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.toggle-text span:hover {
+  text-decoration: underline;
+}
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+
+@media (max-width: 500px) {
+  .login-popup-container {
+    padding: 20px;
+    width: 90%;
+  }
+  .btn-submit,
+  .google-btn {
     font-size: 14px;
-    animation: fadeIn 0.5s;
-
-}
-.login-popup-title{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: black;
-}
-.login-popup-title img{
-    width: 16px;
-    cursor: pointer;
-}
-.login-popup-inputs{
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-.login-popup-inputs input{
-    outline: none;
-    border: 1px solid #c9c9c9;
-    padding: 10px;
-    border-radius: 4px;
-}
-.login-popup-container button{
-    border: none;
-    padding: 10px;
-    border-radius: 4px;
-    color: white;
-    background-color: #D96F32;
-    font-size: 15px;
-    cursor: pointer;
-}
-.login-popup-condition{
-    display: flex;
-    align-items: start;
-    gap: 8px;
-    margin-top: -15px;
-}
-.login-popup-condition input{
-    margin-top: 5px;
-}
-.login-popup p span{
-    color: #D96F32;
-    font-weight: 500;
-    cursor: pointer;
-}
-
-/* Admin mode - blue color for links */
-.login-popup-container.admin-mode p span{
-    color: #2563eb;
-}
-.login-popup-user-type{
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-.login-popup-user-type button{
-    flex: 1;
-    padding: 10px;
-    border: 2px solid #e5e7eb;
-    background-color: white;
-    color: #6b7280;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-.login-popup-user-type button:hover{
-    border-color: #D96F32;
-    color: #D96F32;
-}
-.login-popup-user-type button.active{
-    border-color: #D96F32;
-    background-color: #D96F32;
-    color: white;
-}
-
-/* Admin button active state - blue */
-.login-popup-user-type button:nth-child(2).active{
-    border-color: #2563eb;
-    background-color: #2563eb;
-    color: white;
-}
-
-.login-popup-user-type button:nth-child(2):hover{
-    border-color: #2563eb;
-    color: #2563eb;
-}
-
-/* Admin login button - blue */
-.login-popup-container button.admin-login-btn{
-    background-color: #2563eb;
-}
-
-.login-popup-container button.admin-login-btn:hover{
-    background-color: #1d4ed8;
+    padding: 8px;
+  }
 }

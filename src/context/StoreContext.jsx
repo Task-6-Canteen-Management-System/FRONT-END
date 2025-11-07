@@ -7,19 +7,25 @@ const StoreContextProvider = (props) => {
   const url = "https://ajay-cafe-1.onrender.com";
   const [foodList, setFoodList] = useState([]);
   const [cartItems, setCartItems] = useState({});
+  const url = "https://ajay-cafe-1.onrender.com";
+  const [token, setToken] = useState("");
+  const [userType, setUserType] = useState("user"); // "user" or "admin"
+  const [food_list, setFoodList] = useState(localFoodList);
 
-  // --- API Fetching ---
+  // Helper function to get quantity from cart item (supports both old and new format)
+  const getCartQuantity = (itemId) => {
+    if (!cartItems[itemId]) return 0;
+    if (typeof cartItems[itemId] === "number") {
+      return cartItems[itemId];
+    }
+    return cartItems[itemId].quantity || 0;
+  };
 
-  const fetchFoodList = async () => {
-    try {
-      const response = await axios.get(`${url}/api/foods/allFoods`);
-      if (response.data.success) {
-        setFoodList(response.data.data);
-      } else {
-        console.error("Error fetching food list:", response.data.message);
-      }
-    } catch (error) {
-      console.error("An error occurred while fetching the food list:", error);
+  // Helper function to get notes from cart item
+  const getCartNotes = (itemId) => {
+    if (!cartItems[itemId]) return "";
+    if (typeof cartItems[itemId] === "number") {
+      return "";
     }
   };
 
@@ -48,25 +54,35 @@ const StoreContextProvider = (props) => {
 
   const removeFromCart = (itemId) => {
     setCartItems((prev) => {
-      const item = prev[itemId];
-      if (item.quantity > 1) {
-        return { ...prev, [itemId]: { ...item, quantity: item.quantity - 1 } };
+      const currentItem = prev[itemId];
+      if (!currentItem) return prev;
+
+      if (typeof currentItem === "number") {
+        // Old format
+        const newQuantity = currentItem - 1;
+        if (newQuantity <= 0) {
+          const { [itemId]: removed, ...rest } = prev;
+          return rest;
+        }
+        return { ...prev, [itemId]: newQuantity };
       } else {
         const newCart = { ...prev };
         delete newCart[itemId];
         return newCart;
       }
     });
-  };
-
-  // --- Helper Functions (for components to use) ---
-
-  const getCartQuantity = (itemId) => {
-    return cartItems[itemId] ? cartItems[itemId].quantity : 0;
-  };
-
-  const getCartNotes = (itemId) => {
-    return cartItems[itemId] ? cartItems[itemId].notes : "";
+    if (token) {
+      const response = await axios.post(
+        url + "/api/cart/remove",
+        { itemId },
+        { headers: { token } }
+      );
+      if (response.data.success) {
+        toast.success("item Removed from Cart");
+      } else {
+        toast.error("Something went wrong");
+      }
+    }
   };
 
   const getTotalCartAmount = () => {
@@ -95,7 +111,42 @@ const StoreContextProvider = (props) => {
     return totalItems;
   };
 
-  // --- Final Context Value ---
+  const fetchFoodList = async () => {
+    const response = await axios.get(url + "/api/food/list");
+    if (response.data.success) {
+      setFoodList(response.data.data);
+    } else {
+      alert("Error! Products are not fetching..");
+    }
+  };
+
+  const loadCardData = async (token) => {
+    try {
+      const response = await axios.post(
+        url + "/api/cart/get",
+        {},
+        { headers: { token } }
+      );
+      setCartItems(response.data.cartData || {});
+    } catch (error) {
+      console.error("Failed to load cart data", error);
+      setCartItems({});
+    }
+  };
+
+  useEffect(() => {
+    async function loadData() {
+      // await fetchFoodList();
+      if (localStorage.getItem("token")) {
+        setToken(localStorage.getItem("token"));
+        // Load user type from localStorage
+        const savedUserType = localStorage.getItem("userType") || "user";
+        setUserType(savedUserType);
+        await loadCardData(localStorage.getItem("token"));
+      }
+    }
+    loadData();
+  }, []);
 
   const contextValue = {
     url,
