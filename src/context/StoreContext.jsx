@@ -7,7 +7,7 @@ export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
   const [cartItems, setCartItems] = useState({});
-  const url = "https://food-delivery-backend-5b6g.onrender.com";
+  const url = "https://ajay-cafe-1.onrender.com/";
   const [token, setToken] = useState("");
   const [userType, setUserType] = useState("user"); // "user" or "admin"
   const [food_list, setFoodList] = useState(localFoodList); 
