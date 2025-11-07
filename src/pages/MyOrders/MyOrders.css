@@ -1,0 +1,100 @@
+.my-orders{
+    margin: 50px 0px;
+}
+.loyalty-program {
+    margin: 30px 0px;
+    padding: 25px;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 2px solid #D96F32;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.1);
+}
+.loyalty-program h3 {
+    color: #D96F32;
+    margin-bottom: 15px;
+    font-size: 22px;
+}
+.reward-message {
+    text-align: center;
+    color: #059669;
+}
+.reward-message p {
+    margin: 10px 0;
+    font-size: 16px;
+}
+.reward-progress {
+    text-align: center;
+}
+.reward-progress p {
+    color: #475569;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+.progress-bar {
+    width: 100%;
+    height: 30px;
+    background-color: #e2e8f0;
+    border-radius: 15px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #D96F32 0%, #e68a4d 100%);
+    border-radius: 15px;
+    transition: width 0.5s ease;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+.my-orders .container{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 30px;
+}
+.my-orders-order{
+    display: grid;
+    grid-template-columns: 0.5fr 2fr 1fr 1fr 2fr 1fr;
+    align-items: center;
+    gap: 30px;
+    font-size: 14px;
+    padding: 10px 20px;
+    color: #454545;
+    border: 1px solid #D96F32;
+}
+.my-orders-order img{
+    width: 50px;
+}
+.my-orders-order p span{
+    color: #D96F32;
+}
+.my-orders-order p b{
+    font-weight: 500;
+    color: #454545;
+}
+.my-orders-order button{
+    border: none;
+    padding: 12px 0px;
+    border-radius: 4px;
+    background-color: #ffe1e1;
+    cursor: pointer;
+    color: #454545;
+}
+@media (max-width:900px) {
+    .loyalty-program {
+        padding: 15px;
+    }
+    .loyalty-program h3 {
+        font-size: 18px;
+    }
+    .loyalty-program p {
+        font-size: 14px;
+    }
+    .my-orders-order{
+        grid-template-columns: 1fr 2fr 1fr;
+        row-gap: 5px;
+        font-size: 12px;
+    }
+    .my-orders-order button{
+        font-size: 10px;
+    }
+}
