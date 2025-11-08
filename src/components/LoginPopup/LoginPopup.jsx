@@ -27,15 +27,17 @@ const GoogleIcon = () => (
 );
 
 const LoginPopup = ({ setShowLogin }) => {
-  const { url, setToken, userType, setUserType } = useContext(StoreContext);
+  const { url, setToken } = useContext(StoreContext);
 
-  const [mode, setMode] = useState("login"); // "login" | "signup"
+  const [mode, setMode] = useState("login"); // login or signup
+  const [role, setRole] = useState("user"); // user or admin
+
   const [data, setData] = useState({
     username: "",
     email: "",
     password: "",
-    role: "customer",
     userId: "",
+    name: "",
   });
 
   const handleChange = (e) => {
@@ -45,117 +47,87 @@ const LoginPopup = ({ setShowLogin }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     let newUrl = url;
-    let requestData = { ...data };
-    
-    if (userType === "admin") {
-      if (mode === "login") {
-        if (!data.userId || !data.password) {
-          toast.error("Please fill in all required fields.");
-          return;
-        }
-        newUrl += "/api/admin/login";
-        requestData = {
-          userId: data.userId.trim(),
-          password: data.password
-        };
-      } else {
-        if (!data.username || !data.userId || !data.password) {
-          toast.error("Please fill in all required fields.");
-          return;
-        }
-        newUrl += "/api/admin/register";
-        requestData = {
-          name: data.username.trim(),
-          userId: data.userId.trim(),
-          password: data.password,
-          role:"customer"
-        };
-      }
-    } else {
-      if (mode === "login") {
-        if (!data.email || !data.password) {
-          toast.error("Please fill in all required fields.");
-          return;
-        }
-        newUrl += "/api/user/login";
-        requestData = {
-          email: data.email.trim(),
-          password: data.password
-        };
-      } else {
-        if (!data.username || !data.email || !data.password || !data.role) {
-          toast.error("Please fill in all required fields.");
-          return;
-        }
-        newUrl += "/api/user/register";
-        requestData = {
-          username: data.username.trim(),
-          email: data.email.trim(),
-          password: data.password,
-          role:data.role
-        };
-      }
-    }
-    
+    let requestData = {};
+
     try {
-            console.log("Here is the body I am sending",requestData)
+      // ✅ USER AUTH FLOW
+      if (role === "user") {
+        if (mode === "signup") {
+          if (!data.username || !data.email || !data.password) {
+            toast.error("Please fill all required fields");
+            return;
+          }
+          newUrl += "/api/user/register";
+          requestData = {
+            username: data.username.trim(),
+            email: data.email.trim(),
+            password: data.password,
+            role: "user",
+          };
+        } else {
+          if (!data.email || !data.password) {
+            toast.error("Please fill all required fields");
+            return;
+          }
+          newUrl += "/api/user/login";
+          requestData = {
+            email: data.email.trim(),
+            password: data.password,
+          };
+        }
+      }
+
+      // ✅ ADMIN AUTH FLOW
+      else if (role === "admin") {
+        if (mode === "signup") {
+          if (!data.name || !data.userId || !data.password) {
+            toast.error("Please fill all required fields");
+            return;
+          }
+          newUrl += "/api/admin/register";
+          requestData = {
+            name: data.name.trim(),
+            userId: data.userId.trim(),
+            password: data.password,
+            role: "admin",
+          };
+        } else {
+          if (!data.userId || !data.password) {
+            toast.error("Please fill all required fields");
+            return;
+          }
+          newUrl += "/api/admin/login";
+          requestData = {
+            userId: data.userId.trim(),
+            password: data.password,
+          };
+        }
+      }
+
+      console.log("📤 Sending:", requestData);
+      console.log("🌍 URL:", newUrl);
 
       const response = await axios.post(newUrl, requestData, {
-        withCredentials:true
+        withCredentials: true,
       });
+
       if (response.data.success) {
         setToken(response.data.token);
         localStorage.setItem("token", response.data.token);
-        localStorage.setItem("userType", userType);
-        setUserType(userType);
-        toast.success(`${userType === "admin" ? "Admin" : "User"} ${mode === "login" ? "Login" : "Registration"} Successfully`);
+        localStorage.setItem("role", role);
+        toast.success(`${role} ${mode} successful`);
         setShowLogin(false);
       } else {
-        toast.error(response.data.message || `${mode === "login" ? "Login" : "Registration"} failed. Please try again.`);
+        toast.error(response.data.message || "Something went wrong");
       }
     } catch (error) {
-      console.error("Login/Register error:", error);
-      console.error("Request URL:", newUrl);
-      console.error("Request Data:", requestData);
-      console.error("Response:", error.response?.data);
-      
-      if (error.response) {
-        const status = error.response.status;
-        const responseData = error.response.data;
-        
-        switch (status) {
-          case 400:
-            toast.error(responseData?.message || "Invalid request. Please check your input.");
-            break;
-          case 401:
-            toast.error(responseData?.message || "Invalid email or password.");
-            break;
-          case 404:
-            toast.error(responseData?.message || "Endpoint not found. Please contact support.");
-            break;
-          case 500:
-            toast.error(responseData?.message || "Server error. The backend service may be experiencing issues. Please try again later.");
-            console.error("Server error details:", responseData);
-            break;
-          case 502:
-          case 503:
-            toast.error("Service temporarily unavailable. Please try again later.");
-            break;
-          default:
-            toast.error(responseData?.message || `Error ${status}: Something went wrong. Please try again.`);
-        }
-      } else if (error.request) {
-        toast.error("Network error. Unable to reach the server. Please check your connection.");
-      } else {
-        toast.error(error.message || "An unexpected error occurred. Please try again.");
-      }
+      console.error("❌ Auth error:", error);
+      toast.error(error.response?.data?.message || "Server error occurred");
     }
   };
 
-  // ✅ Google login
   const handleGoogleLogin = () => {
-    window.open(`${url}/api/user/auth/google`, "_self");
-    // ✅ Optional: Close popup immediately
+    window.open(`${url}/api/user/google`, "_self");
     setShowLogin(false);
   };
 
@@ -168,8 +140,18 @@ const LoginPopup = ({ setShowLogin }) => {
 
         <h2>{mode === "login" ? "Login" : "Create Account"}</h2>
 
+        {/* ✅ Role Selector */}
+        <div className="role-select">
+          <label>Select Role:</label>
+          <select value={role} onChange={(e) => setRole(e.target.value)}>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
         <form onSubmit={handleSubmit} className="login-form">
-          {mode === "signup" && (
+          {/* USER FIELDS */}
+          {role === "user" && mode === "signup" && (
             <input
               type="text"
               name="username"
@@ -180,15 +162,51 @@ const LoginPopup = ({ setShowLogin }) => {
             />
           )}
 
-          <input
-            type="email"
-            name="email"
-            value={data.email}
-            onChange={handleChange}
-            placeholder="Email"
-            required
-          />
+          {role === "user" && (
+            <input
+              type="email"
+              name="email"
+              value={data.email}
+              onChange={handleChange}
+              placeholder="Email"
+              required
+            />
+          )}
 
+          {/* ADMIN FIELDS */}
+          {role === "admin" && mode === "signup" && (
+            <>
+              <input
+                type="text"
+                name="name"
+                value={data.name}
+                onChange={handleChange}
+                placeholder="Admin Name"
+                required
+              />
+              <input
+                type="text"
+                name="userId"
+                value={data.userId}
+                onChange={handleChange}
+                placeholder="Admin ID"
+                required
+              />
+            </>
+          )}
+
+          {role === "admin" && mode === "login" && (
+            <input
+              type="text"
+              name="userId"
+              value={data.userId}
+              onChange={handleChange}
+              placeholder="Admin ID"
+              required
+            />
+          )}
+
+          {/* Common Password Field */}
           <input
             type="password"
             name="password"
@@ -198,21 +216,6 @@ const LoginPopup = ({ setShowLogin }) => {
             required
           />
 
-          {mode === "signup" && (
-            <div className="role-select">
-              <label>Select Role:</label>
-              <select
-                name="role"
-                value={data.role}
-                onChange={handleChange}
-                required
-              >
-                <option value="customer">Customer</option>
-                <option value="owner">Owner</option>
-              </select>
-            </div>
-          )}
-
           <button type="submit" className="btn-submit">
             {mode === "login" ? "Login" : "Sign Up"}
           </button>
@@ -220,15 +223,17 @@ const LoginPopup = ({ setShowLogin }) => {
 
         <div className="divider">or</div>
 
-        <button onClick={handleGoogleLogin} className="google-btn">
-          <GoogleIcon /> Continue with Google
-        </button>
+        {role === "user" && (
+          <button onClick={handleGoogleLogin} className="google-btn">
+            <GoogleIcon /> Continue with Google
+          </button>
+        )}
 
         <p className="toggle-text">
           {mode === "login" ? (
             <>
-              Don't have an account?{" "}
-              <span onClick={() => setMode("signup")}>Sign up</span>
+              Don’t have an account?{" "}
+              <span onClick={() => setMode("signup")}>Sign Up</span>
             </>
           ) : (
             <>

@@ -14,7 +14,9 @@ const AdminDashboard = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get(url + "/api/order/all", { headers: { token } });
+      const response = await axios.get(url + "/api/order/all", {
+        headers: { token },
+      });
       if (response.data.success) {
         const sortedOrders = response.data.data.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -41,8 +43,8 @@ const AdminDashboard = () => {
       );
       if (response.data.success) {
         toast.success(`Order marked as ${newStatus}`);
-        setOrders(prev =>
-          prev.map(order =>
+        setOrders((prev) =>
+          prev.map((order) =>
             order._id === orderId ? { ...order, status: newStatus } : order
           )
         );
@@ -77,7 +79,7 @@ const AdminDashboard = () => {
     return () => clearInterval(interval);
   }, [token, userType, navigate]);
 
-  const filteredOrders = orders.filter(order => {
+  const filteredOrders = orders.filter((order) => {
     if (filterStatus === "all") return true;
     const status = order.status?.toLowerCase() || "pending";
     if (filterStatus === "pending") {
@@ -86,27 +88,46 @@ const AdminDashboard = () => {
     return status === filterStatus;
   });
 
-  if (loading) return <div className="admin-dashboard"><p>Loading orders...</p></div>;
+  if (loading)
+    return (
+      <div className="admin-dashboard">
+        <p>Loading orders...</p>
+      </div>
+    );
 
   return (
     <div className="admin-dashboard">
       <h1>📊 Order Management Dashboard</h1>
 
       <div className="admin-filter-tabs">
-        {["all", "pending", "accepted", "preparing", "ready"].map(s => (
-          <button key={s} className={filterStatus === s ? "active" : ""} onClick={() => setFilterStatus(s)}>
-            {s.charAt(0).toUpperCase() + s.slice(1)} ({orders.filter(o => 
-              (o.status?.toLowerCase() || "pending") === s || 
-              (s === "pending" && (o.status?.toLowerCase() === "order placed"))
-            ).length})
+        {["all", "pending", "accepted", "preparing", "ready"].map((s) => (
+          <button
+            key={s}
+            className={filterStatus === s ? "active" : ""}
+            onClick={() => setFilterStatus(s)}
+          >
+            {s.charAt(0).toUpperCase() + s.slice(1)} (
+            {
+              orders.filter(
+                (o) =>
+                  (o.status?.toLowerCase() || "pending") === s ||
+                  (s === "pending" &&
+                    o.status?.toLowerCase() === "order placed")
+              ).length
+            }
+            )
           </button>
         ))}
       </div>
 
       <div className="orders-grid">
         {filteredOrders.length > 0 ? (
-          filteredOrders.map(order => (
-            <OrderCard key={order._id} order={order} onStatusChange={handleStatusChange} />
+          filteredOrders.map((order) => (
+            <OrderCard
+              key={order._id}
+              order={order}
+              onStatusChange={handleStatusChange}
+            />
           ))
         ) : (
           <p>No orders here.</p>
@@ -124,26 +145,42 @@ const OrderCard = ({ order, onStatusChange }) => {
   const isReady = status === "ready";
 
   const getStatusColor = () =>
-    isPending ? "#ef4444" :
-    isAccepted ? "#f59e0b" :
-    isPreparing ? "#3b82f6" :
-    isReady ? "#10b981" : "#6b7280";
+    isPending
+      ? "#ef4444"
+      : isAccepted
+      ? "#f59e0b"
+      : isPreparing
+      ? "#3b82f6"
+      : isReady
+      ? "#10b981"
+      : "#6b7280";
 
-  const nextAction =
-    isPending ? "Accept Order" :
-    isAccepted ? "Mark Preparing" :
-    isPreparing ? "Mark Ready" :
-    null;
+  const nextAction = isPending
+    ? "Accept Order"
+    : isAccepted
+    ? "Mark Preparing"
+    : isPreparing
+    ? "Mark Ready"
+    : null;
 
   return (
-    <div className="order-card" style={{ borderLeft: `4px solid ${getStatusColor()}` }}>
+    <div
+      className="order-card"
+      style={{ borderLeft: `4px solid ${getStatusColor()}` }}
+    >
       <div className="order-header">
         <strong>Order #{order._id.slice(-6)}</strong>
-        <span className="status" style={{ color: getStatusColor() }}>{order.status || "Pending"}</span>
+        <span className="status" style={{ color: getStatusColor() }}>
+          {order.status || "Pending"}
+        </span>
       </div>
 
-      <p><strong>Total:</strong> ₹{order.amount}</p>
-      <p><strong>Time:</strong> {new Date(order.createdAt).toLocaleString()}</p>
+      <p>
+        <strong>Total:</strong> ₹{order.amount}
+      </p>
+      <p>
+        <strong>Time:</strong> {new Date(order.createdAt).toLocaleString()}
+      </p>
 
       <div className="order-items">
         <strong>Items:</strong>
@@ -156,7 +193,11 @@ const OrderCard = ({ order, onStatusChange }) => {
       </div>
 
       {nextAction && (
-        <button className="status-btn" onClick={() => onStatusChange(order._id, status)} style={{ background: getStatusColor() }}>
+        <button
+          className="status-btn"
+          onClick={() => onStatusChange(order._id, status)}
+          style={{ background: getStatusColor() }}
+        >
           {nextAction}
         </button>
       )}
