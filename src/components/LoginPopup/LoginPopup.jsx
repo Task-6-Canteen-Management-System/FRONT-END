@@ -67,7 +67,8 @@ const LoginPopup = ({ setShowLogin }) => {
         requestData = {
           name: data.username.trim(),
           userId: data.userId.trim(),
-          password: data.password
+          password: data.password,
+          role:"customer"
         };
       }
     } else {
@@ -82,26 +83,26 @@ const LoginPopup = ({ setShowLogin }) => {
           password: data.password
         };
       } else {
-        if (!data.username || !data.email || !data.password) {
+        if (!data.username || !data.email || !data.password || !data.role) {
           toast.error("Please fill in all required fields.");
           return;
         }
         newUrl += "/api/user/register";
         requestData = {
-          name: data.username.trim(),
+          username: data.username.trim(),
           email: data.email.trim(),
-          password: data.password
+          password: data.password,
+          role:data.role
         };
       }
     }
     
     try {
+            console.log("Here is the body I am sending",requestData)
+
       const response = await axios.post(newUrl, requestData, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        withCredentials:true
       });
-      
       if (response.data.success) {
         setToken(response.data.token);
         localStorage.setItem("token", response.data.token);
