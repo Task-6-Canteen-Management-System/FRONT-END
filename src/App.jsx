@@ -12,6 +12,9 @@ import "react-toastify/dist/ReactToastify.css";
 import Verify from "./pages/Verify/Verify";
 import MyOrders from "./pages/MyOrders/MyOrders";
 import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
+import TrackOrder from "./pages/TrackOrder/TrackOrder";
+
+
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -28,6 +31,9 @@ const App = () => {
           <Route path="/verify" element={<Verify />} />
           <Route path="/myorders" element={<MyOrders />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/track/:orderId" element={<TrackOrder />} />
+
+
         </Routes>
       </div>
       <Footer />

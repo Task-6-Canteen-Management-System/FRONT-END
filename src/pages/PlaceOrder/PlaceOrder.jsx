@@ -3,26 +3,29 @@ import "./PlaceOrder.css";
 import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
 
 const PlaceOrder = () => {
   const navigate = useNavigate();
-
   const { getTotalCartAmount, token, food_list, cartItems, getCartQuantity, getCartNotes, url } =
     useContext(StoreContext);
-
   const [orderCount, setOrderCount] = useState(0);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
 
+  // Fetch number of past orders for loyalty tracking
   const fetchOrderCount = async () => {
-    const response = await axios.post(
-      url + "/api/order/userorders",
-      {},
-      { headers: { token } }
-    );
-    if (response.data.success) {
-      setOrderCount(response.data.data.length);
+    try {
+      const response = await axios.post(
+        `${url}/api/order/userorders`,
+        {},
+        { headers: { token } }
+      );
+      if (response.data.success) {
+        setOrderCount(response.data.data.length);
+      }
+    } catch (err) {
+      console.error("Error fetching orders:", err);
     }
   };
 
@@ -35,7 +38,7 @@ const PlaceOrder = () => {
       const notes = getCartNotes ? getCartNotes(item._id) : "";
 
       if (quantity > 0) {
-        let itemInfo = { ...item, quantity };
+        let itemInfo = { foodId: item._id, name: item.name, price: item.price, quantity };
         if (notes) {
           itemInfo.notes = notes;
         }
@@ -43,11 +46,12 @@ const PlaceOrder = () => {
       }
     });
 
+    // 🎁 Loyalty Reward Logic
     const isComplementaryOrder = orderCount % 6 === 5;
     if (isComplementaryOrder && orderItems.length > 0) {
       const sortedItems = [...orderItems].sort((a, b) => a.price - b.price);
       const cheapestItem = sortedItems[0];
-      const complementaryItem = { 
+      const complementaryItem = {
         ...cheapestItem,
         name: cheapestItem.name + " (FREE - Foodie Reward!)",
         quantity: 1,
@@ -61,8 +65,10 @@ const PlaceOrder = () => {
 
     let orderData = {
       address: "No address (Canteen Pickup)",
+    const orderData = {
       items: orderItems,
-      amount: totalAmount + 2,
+      amount: totalAmount + 2, // ₹2 platform fee
+      address: "Canteen Pickup", // simple static address
     };
 
     let response = await axios.post(url + "/api/order/place", orderData, { headers: { token } });
@@ -74,16 +80,32 @@ const PlaceOrder = () => {
       toast.success("Order placed! Please scan the QR code to complete payment.");
     } else {
       toast.error("Something went wrong!");
+    try {
+      const response = await axios.post(
+        `${url}/api/order/createOrder`, // ✅ correct endpoint
+        orderData,
+        { headers: { token } }
+      );
+
+      if (response.data.success) {
+        toast.success("Order placed successfully!");
+        navigate("/myorders");
+      } else {
+        toast.error(response.data.message || "Something went wrong while placing order.");
+      }
+    } catch (err) {
+      console.error("Order placement failed:", err);
+      toast.error("Failed to place order. Please try again.");
     }
   };
 
   useEffect(() => {
     if (!token) {
-      toast.error("Please Login first")
-      navigate("/cart")
+      toast.error("Please Login first");
+      navigate("/cart");
     } else if (getTotalCartAmount() === 0) {
       toast.error("Please Add Items to Cart");
-      navigate("/cart")
+      navigate("/cart");
     } else {
       fetchOrderCount();
     }
