@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { food_list as localFoodList } from "../assets/frontend_assets/assets";
 import { fetchRecommendations } from "../config/recommendationApi";
 import { sendChatMessage, checkChatApiStatus } from "../config/chatApi";
 import axios from "axios";
@@ -8,12 +9,14 @@ export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
   const url = "https://ajay-cafe-1.onrender.com";
+
+  // --- State variables (define once only)
   const [foodList, setFoodList] = useState([]);
   const [cartItems, setCartItems] = useState({});
   const [token, setToken] = useState("");
   const [userType, setUserType] = useState("user"); // "user" or "admin"
 
-  // --- Fetch all food items ---
+  // --- Fetch food list ---
   const fetchFoodList = async () => {
     try {
       const response = await axios.get(`${url}/api/foods/allFoods`);
@@ -28,7 +31,7 @@ const StoreContextProvider = (props) => {
     }
   };
 
-  // --- Load user's cart ---
+  // --- Load cart data ---
   const loadCardData = async (token) => {
     try {
       const response = await axios.post(
@@ -43,10 +46,11 @@ const StoreContextProvider = (props) => {
     }
   };
 
-  // --- On mount ---
+  // --- Load data on mount ---
   useEffect(() => {
     async function loadData() {
       await fetchFoodList();
+
       const storedToken = localStorage.getItem("token");
       if (storedToken) {
         setToken(storedToken);
@@ -58,7 +62,7 @@ const StoreContextProvider = (props) => {
     loadData();
   }, []);
 
-  // --- Cart Helpers ---
+  // --- Cart helper functions ---
   const getCartQuantity = (itemId) => {
     const item = cartItems[itemId];
     if (!item) return 0;
@@ -76,26 +80,33 @@ const StoreContextProvider = (props) => {
     setCartItems((prev) => {
       const currentItem = prev[itemId];
       if (!currentItem) return prev;
+
       if (typeof currentItem === "number") {
         return { ...prev, [itemId]: { quantity: currentItem, notes } };
       }
+
       return { ...prev, [itemId]: { ...currentItem, notes } };
     });
   };
 
-  // --- Add to Cart ---
+  // --- Add to cart ---
   const addToCart = async (itemId, notes = "") => {
     setCartItems((prev) => {
       const currentItem = prev[itemId];
       if (!currentItem)
-        return { ...prev, [itemId]: { quantity: 1, notes } };
+        return { ...prev, [itemId]: { quantity: 1, notes: notes || "" } };
+
       if (typeof currentItem === "number")
-        return { ...prev, [itemId]: { quantity: currentItem + 1, notes } };
+        return {
+          ...prev,
+          [itemId]: { quantity: currentItem + 1, notes: notes || "" },
+        };
+
       return {
         ...prev,
         [itemId]: {
           quantity: currentItem.quantity + 1,
-          notes: notes || currentItem.notes,
+          notes: notes || currentItem.notes || "",
         },
       };
     });
@@ -107,15 +118,15 @@ const StoreContextProvider = (props) => {
           { itemId },
           { headers: { token } }
         );
-        if (response.data.success) toast.success("Item Added to Cart");
-        else toast.error(response.data.message || "Error adding to cart");
-      } catch (error) {
+        if (response.data.success) toast.success("Item added to cart");
+        else toast.error(response.data.message || "Something went wrong");
+      } catch {
         toast.error("Failed to update cart");
       }
     }
   };
 
-  // --- Remove from Cart ---
+  // --- Remove from cart ---
   const removeFromCart = async (itemId) => {
     setCartItems((prev) => {
       const currentItem = prev[itemId];
@@ -124,18 +135,19 @@ const StoreContextProvider = (props) => {
       if (typeof currentItem === "number") {
         const newQty = currentItem - 1;
         if (newQty <= 0) {
-          const { [itemId]: removed, ...rest } = prev;
+          const { [itemId]: _, ...rest } = prev;
           return rest;
         }
         return { ...prev, [itemId]: newQty };
-      } else {
-        const newQty = currentItem.quantity - 1;
-        if (newQty <= 0) {
-          const { [itemId]: removed, ...rest } = prev;
-          return rest;
-        }
-        return { ...prev, [itemId]: { ...currentItem, quantity: newQty } };
       }
+
+      const newQty = currentItem.quantity - 1;
+      if (newQty <= 0) {
+        const { [itemId]: _, ...rest } = prev;
+        return rest;
+      }
+
+      return { ...prev, [itemId]: { ...currentItem, quantity: newQty } };
     });
 
     if (token) {
@@ -145,66 +157,53 @@ const StoreContextProvider = (props) => {
           { itemId },
           { headers: { token } }
         );
-        if (response.data.success) toast.success("Item Removed from Cart");
-        else toast.error(response.data.message || "Error removing item");
-      } catch (error) {
+        if (response.data.success) toast.success("Item removed from cart");
+        else toast.error(response.data.message || "Something went wrong");
+      } catch {
         toast.error("Failed to update cart");
       }
     }
   };
 
-  // --- Remove Item Completely ---
+  // --- Remove item completely ---
   const removeItemCompletely = async (itemId) => {
-    if (!token) {
-      toast.error("Please login first");
-      return;
-    }
+    if (!token) return toast.error("Please login first");
     try {
       const response = await axios.delete(`${url}/api/cart/remove/${itemId}`, {
         headers: { token },
       });
+
       if (response.data.success) {
+        toast.success("Item removed completely");
         setCartItems((prev) => {
-          const { [itemId]: removed, ...rest } = prev;
+          const { [itemId]: _, ...rest } = prev;
           return rest;
         });
-        toast.success("Item removed completely");
       } else {
         toast.error(response.data.message || "Failed to remove item");
       }
     } catch (error) {
+      console.error("Error removing item:", error);
       toast.error("Server error while removing item");
     }
   };
 
-  // --- Cart Totals ---
+  // --- Total calculation ---
   const getTotalCartAmount = () => {
-    let total = 0;
-    for (const itemId in cartItems) {
-      const item = foodList.find((f) => f._id === itemId);
-      if (item) total += item.price * getCartQuantity(itemId);
-    }
-    return total;
+    return Object.keys(cartItems).reduce((total, itemId) => {
+      const itemInfo = foodList.find((f) => f._id === itemId);
+      if (itemInfo) total += itemInfo.price * getCartQuantity(itemId);
+      return total;
+    }, 0);
   };
 
   const getTotalCartItems = () => {
-    let count = 0;
-    for (const itemId in cartItems) {
-      count += getCartQuantity(itemId);
-    }
-    return count;
+    return Object.keys(cartItems).reduce(
+      (sum, itemId) => sum + getCartQuantity(itemId),
+      0
+    );
   };
 
-  // --- Logout ---
-  const logout = () => {
-    setToken("");
-    setUserType("user");
-    localStorage.removeItem("token");
-    localStorage.removeItem("userType");
-    toast.success("Logged out successfully");
-  };
-
-  // --- Context Value ---
   const contextValue = {
     url,
     food_list: foodList,
@@ -220,7 +219,6 @@ const StoreContextProvider = (props) => {
     setToken,
     userType,
     setUserType,
-    logout,
     fetchRecommendations,
     sendChatMessage,
     checkChatApiStatus,
