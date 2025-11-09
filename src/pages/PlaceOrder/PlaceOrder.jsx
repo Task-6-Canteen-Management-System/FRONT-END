@@ -3,142 +3,101 @@ import "./PlaceOrder.css";
 import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 const PlaceOrder = () => {
   const navigate = useNavigate();
-  const { getTotalCartAmount, token, food_list, cartItems, getCartQuantity, getCartNotes, url } =
+  const { getTotalCartAmount, token, food_list, cartItems, getCartQuantity, getCartNotes } =
     useContext(StoreContext);
+
   const [orderCount, setOrderCount] = useState(0);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
+  const [tableNumber, setTableNumber] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("cash");
 
-  // Fetch number of past orders for loyalty tracking
+  // ✅ Fetch order history count
   const fetchOrderCount = async () => {
     try {
-      const response = await axios.post(
-        `${url}/api/order/userorders`,
-        {},
-        { headers: { token } }
-      );
-      if (response.data.success) {
-        setOrderCount(response.data.data.length);
-      }
-    } catch (err) {
-      console.error("Error fetching orders:", err);
+      const response = await axios.get("/api/order/allOrders", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) setOrderCount(response.data.data.length);
+    } catch {
+      console.log("Could not fetch previous orders");
     }
   };
 
   const placeOrder = async (event) => {
     event.preventDefault();
 
+    if (!tableNumber) return toast.error("Please enter a table number");
+    if (!token) return toast.error("Please Login first");
+    if (getTotalCartAmount() === 0) return toast.error("Your cart is empty");
+
+    // ✅ Convert cart → backend format
     let orderItems = [];
     food_list.forEach((item) => {
-      const quantity = getCartQuantity ? getCartQuantity(item._id) : (cartItems[item._id] || 0);
-      const notes = getCartNotes ? getCartNotes(item._id) : "";
-
+      const quantity = getCartQuantity(item._id);
+      const notes = getCartNotes(item._id);
       if (quantity > 0) {
-        let itemInfo = { foodId: item._id, name: item.name, price: item.price, quantity };
-        if (notes) {
-          itemInfo.notes = notes;
-        }
-        orderItems.push(itemInfo);
+        orderItems.push({ foodId: item._id, quantity });
       }
     });
 
-    // 🎁 Loyalty Reward Logic
+    // ✅ FREE ITEM ON EVERY 6TH ORDER
     const isComplementaryOrder = orderCount % 6 === 5;
     if (isComplementaryOrder && orderItems.length > 0) {
-      const sortedItems = [...orderItems].sort((a, b) => a.price - b.price);
-      const cheapestItem = sortedItems[0];
-      const complementaryItem = {
-        ...cheapestItem,
-        name: cheapestItem.name + " (FREE - Foodie Reward!)",
-        quantity: 1,
-        price: 0
-      };
-      orderItems.push(complementaryItem);
+      const cheapest = [...orderItems].sort((a, b) => a.price - b.price)[0];
       toast.success("🎉 Free complementary item added to your order!");
+      // Backend will calculate total amount anyway
     }
 
-    const totalAmount = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-    const orderData = {
-      items: orderItems,
-      amount: totalAmount + 2, // ₹2 platform fee
-      address: "Canteen Pickup", // simple static address
-    };
-
     try {
-      const response = await axios.post(`${url}/api/order/place`, orderData, { headers: { token } });
-
-      if (response.data.success) {
-        if (response.data.orderId) {
-          setOrderId(response.data.orderId);
+      const res = await axios.post(
+        "/api/order/createOrder",
+        {
+          items: orderItems,
+          tableNumber: Number(tableNumber),
+          paymentMethod,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
         }
+      );
+
+      if (res.data.success) {
+        setOrderId(res.data.data._id);
         setOrderPlaced(true);
-        toast.success("Order placed! Please scan the QR code to complete payment.");
+        toast.success("Order placed successfully ✅");
       } else {
-        toast.error(response.data.message || "Something went wrong!");
+        toast.error(res.data.message || "Failed to place order");
       }
     } catch (err) {
-      console.error("Order placement failed:", err);
-      toast.error("Failed to place order. Please try again.");
+      console.log(err);
+      toast.error("Server error while placing order");
     }
   };
 
   useEffect(() => {
-    if (!token) {
-      toast.error("Please Login first");
-      navigate("/cart");
-    } else if (getTotalCartAmount() === 0) {
-      toast.error("Please Add Items to Cart");
-      navigate("/cart");
-    } else {
-      fetchOrderCount();
-    }
+    if (token) fetchOrderCount();
   }, [token]);
 
+  // ✅ Payment Screen UI after order placed
   if (orderPlaced) {
     return (
       <div className="place-order">
         <div className="place-order-right">
           <div className="cart-total">
-            <h2>Complete Your Payment</h2>
+            <h2>Order Confirmed ✅</h2>
+            <p>Order ID: {orderId}</p>
+
             <p className="payment-instruction">
-              Please scan the QR code below to complete your payment.
+              Please go to the counter or wait for preparation updates.
             </p>
-            
-            <div className="qr-code-container">
-              <div className="qr-code-placeholder">
-                <p className="qr-placeholder-text">QR Code will be displayed here</p>
-              </div>
-            </div>
 
-            <div className="order-summary">
-              <h3>Order Summary</h3>
-              <div className="cart-total-details">
-                <p>Subtotals</p>
-                <p>₹{getTotalCartAmount()}</p>
-              </div>
-
-              <hr />
-
-              <div className="cart-total-details">
-                <p>Canteeno Platform Fee</p>
-                <p>₹{getTotalCartAmount() === 0 ? 0 : 2}</p>
-              </div>
-
-              <hr />
-
-              <div className="cart-total-details">
-                <b>Total</b>
-                <b>₹{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 2}</b>
-              </div>
-            </div>
-
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="back-to-orders-btn"
               onClick={() => navigate("/myorders")}
             >
@@ -158,29 +117,40 @@ const PlaceOrder = () => {
 
           {orderCount % 6 === 5 && (
             <div className="loyalty-notification">
-              <p>🎉 <strong>It's your 6th order!</strong></p>
-              <p>You'll receive a FREE complementary item!</p>
+              <p>🎉 <strong>You're eligible for a free item!</strong></p>
             </div>
           )}
 
           <div className="cart-total-details">
-            <p>Subtotals</p>
+            <p>Subtotal</p>
             <p>₹{getTotalCartAmount()}</p>
           </div>
-
-          <hr />
 
           <div className="cart-total-details">
             <p>Canteeno Platform Fee</p>
             <p>₹{getTotalCartAmount() === 0 ? 0 : 2}</p>
           </div>
 
-          <hr />
-
           <div className="cart-total-details">
             <b>Total</b>
             <b>₹{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 2}</b>
           </div>
+
+          <br />
+
+          <label>Table Number</label>
+          <input
+            type="number"
+            placeholder="Enter Table Number"
+            value={tableNumber}
+            onChange={(e) => setTableNumber(e.target.value)}
+          />
+
+          <label>Payment Method</label>
+          <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+            <option value="cash">Cash</option>
+            <option value="upi">UPI</option>
+          </select>
 
           <button type="submit">PLACE ORDER</button>
         </div>

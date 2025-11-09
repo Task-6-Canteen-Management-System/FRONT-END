@@ -1,179 +1,173 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import "./cart.css";
 import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
 
+const CartItemRow = ({ item, quantity, notes }) => {
+  const { updateCartNotes, removeItemCompletely, addToCart, removeFromCart } =
+    useContext(StoreContext);
+
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [editNotes, setEditNotes] = useState(notes || "");
+
+  const handleSaveNotes = () => {
+    updateCartNotes(item._id, editNotes);
+    setIsEditingNotes(false);
+  };
+
+  const lineTotal = (item.price || 0) * (quantity || 0);
+
+  return (
+    <>
+      <div className="cart-items-title cart-items-item">
+        <img src={item.image} alt={item.name} />
+        <p>{item.name}</p>
+        <p>₹{item.price}</p>
+
+        <div className="cart-quantity-control">
+          <button onClick={() => removeFromCart(item._id)}>-</button>
+          <span>{quantity}</span>
+          <button onClick={() => addToCart(item._id, notes)}>+</button>
+        </div>
+
+        <p>₹{lineTotal}</p>
+
+        <div className="cart-notes-cell">
+          {isEditingNotes ? (
+            <div className="cart-notes-edit">
+              <textarea
+                value={editNotes}
+                onChange={(e) => setEditNotes(e.target.value)}
+                rows={2}
+                className="cart-notes-input"
+              />
+              <div className="cart-notes-actions">
+                <button type="button" className="cart-notes-save" onClick={handleSaveNotes}>
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className="cart-notes-cancel"
+                  onClick={() => {
+                    setEditNotes(notes || "");
+                    setIsEditingNotes(false);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="cart-notes-display">
+              <span className="cart-notes-text" title={notes || ""}>
+                {notes ? (notes.length > 30 ? `${notes.slice(0, 30)}...` : notes) : "No notes"}
+              </span>
+              <button
+                type="button"
+                className="cart-notes-edit-btn"
+                onClick={() => setIsEditingNotes(true)}
+                title="Edit notes"
+              >
+                ✏
+              </button>
+            </div>
+          )}
+        </div>
+
+        <p onClick={() => removeItemCompletely(item._id)} className="cross">
+          ×
+        </p>
+      </div>
+      <hr />
+    </>
+  );
+};
+
 const Cart = () => {
-  const { url, token, removeItemCompletely } = useContext(StoreContext);
-  const [cart, setCart] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    food_list = [],
+    getTotalCartAmount,
+    getCartQuantity,
+    getCartNotes,
+    clearCart,
+    token,
+  } = useContext(StoreContext);
+
   const navigate = useNavigate();
 
-  // Fetch cart from backend
-  const fetchCart = async () => {
-    if (!token) {
-      toast.error("Please login to view your cart");
-      return;
-    }
+  const subtotal = Number(getTotalCartAmount() || 0);
+  const platformFee = subtotal > 0 ? 2 : 0;
+  const grandTotal = subtotal + platformFee;
 
-    try {
-      const res = await axios.get(`http://localhost:8080/api/cart/MyCart`, {
-        headers: { token },
-      });
-      if (res.data.success || res.data.statusCode === 200) {
-        setCart(res.data.data);
-      } else {
-        toast.error(res.data.message || "Failed to fetch cart");
-      }
-    } catch (err) {
-      console.error("Error fetching cart:", err);
-      toast.error("Server error while loading cart");
-    } finally {
-      setLoading(false);
-    }
+  const handleCheckout = () => {
+    if (!token) return toast.error("Please login to place an order");
+    if (subtotal === 0) return toast.error("Your cart is empty");
+    navigate("/order");
   };
 
-  // Update quantity in backend
-  const handleQuantityChange = async (foodId, newQty) => {
-    if (newQty < 0) return;
-
-    try {
-      const res = await axios.put(
-        `${url}/api/cart/updateCart`,
-        { foodId, quantity: newQty },
-        { headers: { token } }
-      );
-      if (res.data.success || res.data.statusCode === 200) {
-        setCart(res.data.data);
-      } else {
-        toast.error(res.data.message || "Failed to update quantity");
-      }
-    } catch (err) {
-      console.error("Error updating quantity:", err);
-      toast.error("Server error while updating item");
-    }
-  };
-
-  // Clear the entire cart
-  const clearCart = async () => {
-    try {
-      const res = await axios.delete(`${url}/api/cart/clear`, {
-        headers: { token },
-      });
-      if (res.data.success || res.data.statusCode === 200) {
-        setCart(res.data.data);
-        toast.success("Cart cleared successfully");
-      } else {
-        toast.error(res.data.message || "Failed to clear cart");
-      }
-    } catch (err) {
-      console.error("Error clearing cart:", err);
-      toast.error("Server error while clearing cart");
-    }
-  };
-
-  // Calculate total amount locally
-  const calculateTotal = () => {
-    if (!cart || !cart.items) return 0;
-    return cart.items.reduce(
-      (acc, item) => acc + item.price * item.quantity,
-      0
-    );
-  };
-
-  useEffect(() => {
-    fetchCart();
-    // eslint-disable-next-line
-  }, [token]);
-
-  if (loading) return <p>Loading your cart...</p>;
-  if (!cart || !cart.items?.length)
+  if (subtotal === 0) {
     return (
       <div className="cart-empty">
         <h2>Your cart is empty 😕</h2>
         <button onClick={() => navigate("/")}>Browse Menu</button>
       </div>
     );
+  }
 
   return (
     <div className="cart">
       <div className="cart-items">
         <div className="cart-items-title">
-          <p>Item</p>
+          <p>Items</p>
           <p>Title</p>
           <p>Price</p>
           <p>Quantity</p>
           <p>Total</p>
+          <p>Customization</p>
           <p>Remove</p>
         </div>
         <br />
         <hr />
 
-        {cart.items.map((item) => (
-          <div key={item._id} className="cart-items-item">
-            <img
-              src={`${url}/images/${item.foodId.image}`}
-              alt={item.foodId.name}
-            />
-            <p>{item.foodId.name}</p>
-            <p>₹{item.price}</p>
-
-            <div className="cart-quantity-control">
-              <button
-                onClick={() =>
-                  handleQuantityChange(item.foodId._id, item.quantity - 1)
-                }
-                disabled={item.quantity <= 1}
-              >
-                -
-              </button>
-              <span>{item.quantity}</span>
-              <button
-                onClick={() =>
-                  handleQuantityChange(item.foodId._id, item.quantity + 1)
-                }
-              >
-                +
-              </button>
-            </div>
-
-            <p>₹{item.price * item.quantity}</p>
-
-            <p
-              onClick={() => removeItemCompletely(item.foodId._id)}
-              className="cross"
-            >
-              ×
-            </p>
-          </div>
-        ))}
+        {food_list.map((item) => {
+          const q = getCartQuantity(item._id);
+          if (q > 0) {
+            return (
+              <CartItemRow
+                key={item._id}
+                item={item}
+                quantity={q}
+                notes={getCartNotes(item._id)}
+              />
+            );
+          }
+          return null;
+        })}
       </div>
 
-      {/* Cart total section */}
       <div className="cart-bottom">
         <div className="cart-total">
           <h2>Cart Totals</h2>
           <div>
             <div className="cart-total-details">
               <p>Subtotal</p>
-              <p>₹{calculateTotal()}</p>
+              <p>₹{subtotal}</p>
             </div>
             <hr />
             <div className="cart-total-details">
               <p>Canteeno Platform Fee</p>
-              <p>₹{calculateTotal() === 0 ? 0 : 2}</p>
+              <p>₹{platformFee}</p>
             </div>
             <hr />
             <div className="cart-total-details">
               <b>Total</b>
-              <b>₹{calculateTotal() === 0 ? 0 : calculateTotal() + 2}</b>
+              <b>₹{grandTotal}</b>
             </div>
           </div>
-          <button onClick={() => navigate("/order")}>
-            PROCEED TO CHECKOUT
-          </button>
+
+          <button onClick={handleCheckout}>PROCEED TO CHECKOUT</button>
+
           <button
             className="clear-cart-btn"
             onClick={clearCart}
@@ -181,6 +175,16 @@ const Cart = () => {
           >
             CLEAR CART
           </button>
+        </div>
+
+        <div className="cart-promocode">
+          <div>
+            <p>If you have a promocode, enter it here</p>
+            <div className="cart-promocode-input">
+              <input type="text" placeholder="promo code" />
+              <button>Submit</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

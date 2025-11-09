@@ -24,7 +24,7 @@ const LoginPopup = ({ setShowLogin }) => {
     username: "",
     email: "",
     password: "",
-    role: "customer",
+    role: "user",
     userId: "",
   });
 
@@ -66,13 +66,14 @@ const LoginPopup = ({ setShowLogin }) => {
 
       // read correct field
       const accessToken = payload.accessToken || res?.data?.accessToken || payload.token || null;
+      console.log("accessToken",accessToken);
       if (!accessToken) {
         toast.error("Login successful, but the access token is missing.");
         return;
       }
 
       // role detection
-      const finalRole = payload.admin ? "admin" : (payload.role || "customer");
+      const finalRole = payload.admin ? "admin" : (payload.role || "user");
 
       // save auth
       setToken(accessToken);
@@ -102,7 +103,7 @@ const LoginPopup = ({ setShowLogin }) => {
   };
 
   const handleGoogleLogin = () => {
-    window.open("https://ajay-cafe-1.onrender.com/api/user/auth/google", "_self");
+    window.open("https://ajay-cafe-1.onrender.com/api/user/google", "_self");
     setShowLogin(false);
   };
 
@@ -132,8 +133,8 @@ const LoginPopup = ({ setShowLogin }) => {
                 <div className="role-select">
                   <label>Select Role:</label>
                   <select name="role" value={data.role} onChange={handleChange} required>
-                    <option value="customer">Customer</option>
-                    <option value="owner">Owner</option>
+                    <option value="user">USER</option>
+                    <option value="admin">ADMIN</option>
                   </select>
                 </div>
               )}
