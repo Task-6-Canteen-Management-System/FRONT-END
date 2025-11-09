@@ -3,25 +3,29 @@ import "./PlaceOrder.css";
 import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 const PlaceOrder = () => {
   const navigate = useNavigate();
-  const { getTotalCartAmount, token, food_list, cartItems, getCartQuantity, getCartNotes, url } =
+  const { getTotalCartAmount, token, food_list, cartItems, getCartQuantity, url } =
     useContext(StoreContext);
+
   const [orderCount, setOrderCount] = useState(0);
   const [orderPlaced, setOrderPlaced] = useState(false);
-  const [orderId, setOrderId] = useState(null);
+  const [deliveryDetails, setDeliveryDetails] = useState({
+    name: "",
+    phone: "",
+    hostel: "",
+    roomNo: "",
+  });
 
-  // Fetch number of past orders for loyalty tracking
+  // ✅ Fetch all orders (for loyalty)
   const fetchOrderCount = async () => {
     try {
-      const response = await axios.post(
-        `${url}/api/order/userorders`,
-        {},
-        { headers: { token } }
-      );
-      if (response.data.success) {
+      const response = await axios.get(`${url}/api/order/allOrders`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success && Array.isArray(response.data.data)) {
         setOrderCount(response.data.data.length);
       }
     } catch (err) {
@@ -29,70 +33,56 @@ const PlaceOrder = () => {
     }
   };
 
+  // ✅ Place order (Ajay Café backend)
   const placeOrder = async (event) => {
     event.preventDefault();
+
+    if (!deliveryDetails.name || !deliveryDetails.phone || !deliveryDetails.hostel || !deliveryDetails.roomNo) {
+      toast.error("Please fill all delivery details");
+      return;
+    }
 
     let orderItems = [];
     food_list.forEach((item) => {
       const quantity = getCartQuantity ? getCartQuantity(item._id) : (cartItems[item._id] || 0);
-      const notes = getCartNotes ? getCartNotes(item._id) : "";
-
       if (quantity > 0) {
-        let itemInfo = { foodId: item._id, name: item.name, price: item.price, quantity };
-        if (notes) {
-          itemInfo.notes = notes;
-        }
-        orderItems.push(itemInfo);
+        orderItems.push({ foodId: item._id, quantity });
       }
     });
 
-    // 🎁 Loyalty Reward Logic
-    const isComplementaryOrder = orderCount % 6 === 5;
-    if (isComplementaryOrder && orderItems.length > 0) {
-      const sortedItems = [...orderItems].sort((a, b) => a.price - b.price);
-      const cheapestItem = sortedItems[0];
-      const complementaryItem = {
-        ...cheapestItem,
-        name: cheapestItem.name + " (FREE - Foodie Reward!)",
-        quantity: 1,
-        price: 0
-      };
-      orderItems.push(complementaryItem);
-      toast.success("🎉 Free complementary item added to your order!");
+    if (orderItems.length === 0) {
+      toast.error("Your cart is empty!");
+      return;
     }
 
-    const totalAmount = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
     const orderData = {
-      items: orderItems,
-      amount: totalAmount + 2, // ₹2 platform fee
-      address: "Canteen Pickup", // simple static address
+      deliveryDetails,
+      paymentMethod: "COD", // or "ONLINE"
     };
 
     try {
-      const response = await axios.post(`${url}/api/order/place`, orderData, { headers: { token } });
+      const response = await axios.post(`${url}/api/order/createOrder`, orderData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.data.success) {
-        if (response.data.orderId) {
-          setOrderId(response.data.orderId);
-        }
         setOrderPlaced(true);
-        toast.success("Order placed! Please scan the QR code to complete payment.");
+        toast.success("✅ Order placed successfully!");
       } else {
         toast.error(response.data.message || "Something went wrong!");
       }
     } catch (err) {
       console.error("Order placement failed:", err);
-      toast.error("Failed to place order. Please try again.");
+      toast.error("Server error while placing order.");
     }
   };
 
   useEffect(() => {
     if (!token) {
-      toast.error("Please Login first");
+      toast.error("Please login first");
       navigate("/cart");
     } else if (getTotalCartAmount() === 0) {
-      toast.error("Please Add Items to Cart");
+      toast.error("Please add items to your cart");
       navigate("/cart");
     } else {
       fetchOrderCount();
@@ -104,41 +94,31 @@ const PlaceOrder = () => {
       <div className="place-order">
         <div className="place-order-right">
           <div className="cart-total">
-            <h2>Complete Your Payment</h2>
-            <p className="payment-instruction">
-              Please scan the QR code below to complete your payment.
-            </p>
-            
-            <div className="qr-code-container">
-              <div className="qr-code-placeholder">
-                <p className="qr-placeholder-text">QR Code will be displayed here</p>
-              </div>
+            <h2>✅ Order Placed!</h2>
+            <p>Your order has been successfully placed.</p>
+            <p>Go to "My Orders" to track your order status.</p>
+
+            <div className="cart-total-details">
+              <p>Subtotals</p>
+              <p>₹{getTotalCartAmount()}</p>
             </div>
 
-            <div className="order-summary">
-              <h3>Order Summary</h3>
-              <div className="cart-total-details">
-                <p>Subtotals</p>
-                <p>₹{getTotalCartAmount()}</p>
-              </div>
+            <hr />
 
-              <hr />
-
-              <div className="cart-total-details">
-                <p>Canteeno Platform Fee</p>
-                <p>₹{getTotalCartAmount() === 0 ? 0 : 2}</p>
-              </div>
-
-              <hr />
-
-              <div className="cart-total-details">
-                <b>Total</b>
-                <b>₹{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 2}</b>
-              </div>
+            <div className="cart-total-details">
+              <p>Platform Fee</p>
+              <p>₹{getTotalCartAmount() === 0 ? 0 : 2}</p>
             </div>
 
-            <button 
-              type="button" 
+            <hr />
+
+            <div className="cart-total-details">
+              <b>Total</b>
+              <b>₹{getTotalCartAmount() + 2}</b>
+            </div>
+
+            <button
+              type="button"
               className="back-to-orders-btn"
               onClick={() => navigate("/myorders")}
             >
@@ -154,14 +134,49 @@ const PlaceOrder = () => {
     <form className="place-order" onSubmit={placeOrder}>
       <div className="place-order-right">
         <div className="cart-total">
-          <h2>Your Cart Total</h2>
+          <h2>Delivery Details</h2>
+
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={deliveryDetails.name}
+            onChange={(e) =>
+              setDeliveryDetails({ ...deliveryDetails, name: e.target.value })
+            }
+          />
+          <input
+            type="text"
+            placeholder="Phone Number"
+            value={deliveryDetails.phone}
+            onChange={(e) =>
+              setDeliveryDetails({ ...deliveryDetails, phone: e.target.value })
+            }
+          />
+          <input
+            type="text"
+            placeholder="Hostel"
+            value={deliveryDetails.hostel}
+            onChange={(e) =>
+              setDeliveryDetails({ ...deliveryDetails, hostel: e.target.value })
+            }
+          />
+          <input
+            type="text"
+            placeholder="Room No."
+            value={deliveryDetails.roomNo}
+            onChange={(e) =>
+              setDeliveryDetails({ ...deliveryDetails, roomNo: e.target.value })
+            }
+          />
 
           {orderCount % 6 === 5 && (
             <div className="loyalty-notification">
-              <p>🎉 <strong>It's your 6th order!</strong></p>
-              <p>You'll receive a FREE complementary item!</p>
+              <p>🎉 <strong>It’s your 6th order!</strong></p>
+              <p>You’ll receive a complimentary item soon!</p>
             </div>
           )}
+
+          <h2>Your Cart Total</h2>
 
           <div className="cart-total-details">
             <p>Subtotals</p>
@@ -171,7 +186,7 @@ const PlaceOrder = () => {
           <hr />
 
           <div className="cart-total-details">
-            <p>Canteeno Platform Fee</p>
+            <p>Platform Fee</p>
             <p>₹{getTotalCartAmount() === 0 ? 0 : 2}</p>
           </div>
 
@@ -179,7 +194,7 @@ const PlaceOrder = () => {
 
           <div className="cart-total-details">
             <b>Total</b>
-            <b>₹{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 2}</b>
+            <b>₹{getTotalCartAmount() + 2}</b>
           </div>
 
           <button type="submit">PLACE ORDER</button>

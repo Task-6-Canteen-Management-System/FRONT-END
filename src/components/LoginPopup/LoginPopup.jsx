@@ -5,7 +5,6 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-// ✅ Google icon
 const GoogleIcon = () => (
   <svg viewBox="0 0 48 48" width="24px" height="24px">
     <path
@@ -128,6 +127,7 @@ const LoginPopup = ({ setShowLogin }) => {
       toast.error(error.response?.data?.message || "Server error occurred");
     }
   };
+  
 
   const handleGoogleLogin = () => {
     window.open(`${url}/api/user/google`, "_self");
