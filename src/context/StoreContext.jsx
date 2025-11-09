@@ -114,7 +114,7 @@ const StoreContextProvider = (props) => {
     if (token) {
       try {
         const response = await axios.post(
-          `${url}/api/cart/add`,
+          ` http://localhost:8080/api/cart/add`,
           { itemId },
           { headers: { token } }
         );

@@ -3,6 +3,7 @@ import "./LoginPopup.css";
 import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 // ✅ Google icon
 const GoogleIcon = () => (
@@ -28,6 +29,7 @@ const GoogleIcon = () => (
 
 const LoginPopup = ({ setShowLogin }) => {
   const { url, setToken } = useContext(StoreContext);
+  const navigate = useNavigate();
 
   const [mode, setMode] = useState("login"); // login or signup
   const [role, setRole] = useState("user"); // user or admin
@@ -50,7 +52,6 @@ const LoginPopup = ({ setShowLogin }) => {
     let requestData = {};
 
     try {
-      // ✅ USER AUTH FLOW
       if (role === "user") {
         if (mode === "signup") {
           if (!data.username || !data.email || !data.password) {
@@ -75,10 +76,7 @@ const LoginPopup = ({ setShowLogin }) => {
             password: data.password,
           };
         }
-      }
-
-      // ✅ ADMIN AUTH FLOW
-      else if (role === "admin") {
+      } else if (role === "admin") {
         if (mode === "signup") {
           if (!data.name || !data.userId || !data.password) {
             toast.error("Please fill all required fields");
@@ -117,11 +115,16 @@ const LoginPopup = ({ setShowLogin }) => {
         localStorage.setItem("role", role);
         toast.success(`${role} ${mode} successful`);
         setShowLogin(false);
+        if (role === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/");
+        }
       } else {
         toast.error(response.data.message || "Something went wrong");
       }
     } catch (error) {
-      console.error("❌ Auth error:", error);
+      console.error(" Auth error:", error);
       toast.error(error.response?.data?.message || "Server error occurred");
     }
   };
@@ -140,7 +143,6 @@ const LoginPopup = ({ setShowLogin }) => {
 
         <h2>{mode === "login" ? "Login" : "Create Account"}</h2>
 
-        {/* ✅ Role Selector */}
         <div className="role-select">
           <label>Select Role:</label>
           <select value={role} onChange={(e) => setRole(e.target.value)}>
@@ -150,7 +152,6 @@ const LoginPopup = ({ setShowLogin }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
-          {/* USER FIELDS */}
           {role === "user" && mode === "signup" && (
             <input
               type="text"
@@ -173,7 +174,6 @@ const LoginPopup = ({ setShowLogin }) => {
             />
           )}
 
-          {/* ADMIN FIELDS */}
           {role === "admin" && mode === "signup" && (
             <>
               <input
@@ -206,7 +206,6 @@ const LoginPopup = ({ setShowLogin }) => {
             />
           )}
 
-          {/* Common Password Field */}
           <input
             type="password"
             name="password"

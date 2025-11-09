@@ -1,158 +1,186 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./cart.css";
 import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
-
-const CartItemRow = ({ item, quantity, notes, updateNotes, removeFromCart }) => {
-  const [isEditingNotes, setIsEditingNotes] = useState(false);
-  const [editNotes, setEditNotes] = useState(notes);
-  const { url } = useContext(StoreContext);
-
-  const handleSaveNotes = () => {
-    updateNotes(editNotes);
-    setIsEditingNotes(false);
-  };
-
-  return (
-    <div>
-      <div className="cart-items-title cart-items-item">
-        <img src={url+"/images/"+item.image} alt={item.name} />
-        <p>{item.name}</p>
-        <p>₹{item.price}</p>
-        <p>{quantity}</p>
-        <p>₹{item.price * quantity}</p>
-        <div className="cart-notes-cell">
-          {isEditingNotes ? (
-            <div className="cart-notes-edit">
-              <textarea
-                value={editNotes}
-                onChange={(e) => setEditNotes(e.target.value)}
-                placeholder="Add notes..."
-                rows="2"
-                className="cart-notes-input"
-                autoFocus
-              />
-              <div className="cart-notes-actions">
-                <button
-                  type="button"
-                  className="cart-notes-save"
-                  onClick={handleSaveNotes}
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  className="cart-notes-cancel"
-                  onClick={() => {
-                    setEditNotes(notes);
-                    setIsEditingNotes(false);
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="cart-notes-display">
-              {notes ? (
-                <span className="cart-notes-text" title={notes}>
-                  {notes.length > 30 ? notes.substring(0, 30) + "..." : notes}
-                </span>
-              ) : (
-                <span className="cart-notes-empty">No notes</span>
-              )}
-              <button
-                type="button"
-                className="cart-notes-edit-btn"
-                onClick={() => setIsEditingNotes(true)}
-                title="Edit customization notes"
-              >
-                ✏
-              </button>
-            </div>
-          )}
-        </div>
-        <p onClick={() => removeItemCompletely(item._id)} className="cross">x</p>
-      </div>
-      <hr />
-    </div>
-  );
-};
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const Cart = () => {
-  const {
-    food_list,
-    cartItems,
-    removeFromCart,
-    getTotalCartAmount,
-    getCartQuantity,
-    getCartNotes,
-    updateCartNotes,
-    url
-  } = useContext(StoreContext);
+  const { url, token, removeItemCompletely } = useContext(StoreContext);
+  const [cart, setCart] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  const navigate=useNavigate();
+  // Fetch cart from backend
+  const fetchCart = async () => {
+    if (!token) {
+      toast.error("Please login to view your cart");
+      return;
+    }
+
+    try {
+      const res = await axios.get(`http://localhost:8080/api/cart/MyCart`, {
+        headers: { token },
+      });
+      if (res.data.success || res.data.statusCode === 200) {
+        setCart(res.data.data);
+      } else {
+        toast.error(res.data.message || "Failed to fetch cart");
+      }
+    } catch (err) {
+      console.error("Error fetching cart:", err);
+      toast.error("Server error while loading cart");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update quantity in backend
+  const handleQuantityChange = async (foodId, newQty) => {
+    if (newQty < 0) return;
+
+    try {
+      const res = await axios.put(
+        `${url}/api/cart/updateCart`,
+        { foodId, quantity: newQty },
+        { headers: { token } }
+      );
+      if (res.data.success || res.data.statusCode === 200) {
+        setCart(res.data.data);
+      } else {
+        toast.error(res.data.message || "Failed to update quantity");
+      }
+    } catch (err) {
+      console.error("Error updating quantity:", err);
+      toast.error("Server error while updating item");
+    }
+  };
+
+  // Clear the entire cart
+  const clearCart = async () => {
+    try {
+      const res = await axios.delete(`${url}/api/cart/clear`, {
+        headers: { token },
+      });
+      if (res.data.success || res.data.statusCode === 200) {
+        setCart(res.data.data);
+        toast.success("Cart cleared successfully");
+      } else {
+        toast.error(res.data.message || "Failed to clear cart");
+      }
+    } catch (err) {
+      console.error("Error clearing cart:", err);
+      toast.error("Server error while clearing cart");
+    }
+  };
+
+  // Calculate total amount locally
+  const calculateTotal = () => {
+    if (!cart || !cart.items) return 0;
+    return cart.items.reduce(
+      (acc, item) => acc + item.price * item.quantity,
+      0
+    );
+  };
+
+  useEffect(() => {
+    fetchCart();
+    // eslint-disable-next-line
+  }, [token]);
+
+  if (loading) return <p>Loading your cart...</p>;
+  if (!cart || !cart.items?.length)
+    return (
+      <div className="cart-empty">
+        <h2>Your cart is empty 😕</h2>
+        <button onClick={() => navigate("/")}>Browse Menu</button>
+      </div>
+    );
 
   return (
     <div className="cart">
       <div className="cart-items">
         <div className="cart-items-title">
-          <p>Items</p>
+          <p>Item</p>
           <p>Title</p>
           <p>Price</p>
           <p>Quantity</p>
           <p>Total</p>
-          <p>Customization</p>
           <p>Remove</p>
         </div>
         <br />
         <hr />
-        {food_list.map((item, index) => {
-          const quantity = getCartQuantity(item._id);
-          if (quantity > 0) {
-            return (
-              <CartItemRow
-                key={item._id || index}
-                item={item}
-                quantity={quantity}
-                notes={getCartNotes(item._id)}
-                updateNotes={(notes) => updateCartNotes(item._id, notes)}
-                removeFromCart={() => removeFromCart(item._id)}
-              />
-            );
-          }
-          return null;
-        })}
+
+        {cart.items.map((item) => (
+          <div key={item._id} className="cart-items-item">
+            <img
+              src={`${url}/images/${item.foodId.image}`}
+              alt={item.foodId.name}
+            />
+            <p>{item.foodId.name}</p>
+            <p>₹{item.price}</p>
+
+            <div className="cart-quantity-control">
+              <button
+                onClick={() =>
+                  handleQuantityChange(item.foodId._id, item.quantity - 1)
+                }
+                disabled={item.quantity <= 1}
+              >
+                -
+              </button>
+              <span>{item.quantity}</span>
+              <button
+                onClick={() =>
+                  handleQuantityChange(item.foodId._id, item.quantity + 1)
+                }
+              >
+                +
+              </button>
+            </div>
+
+            <p>₹{item.price * item.quantity}</p>
+
+            <p
+              onClick={() => removeItemCompletely(item.foodId._id)}
+              className="cross"
+            >
+              ×
+            </p>
+          </div>
+        ))}
       </div>
+
+      {/* Cart total section */}
       <div className="cart-bottom">
         <div className="cart-total">
           <h2>Cart Totals</h2>
           <div>
             <div className="cart-total-details">
-              <p>Subtotals</p>
-              <p>₹{getTotalCartAmount()}</p>
+              <p>Subtotal</p>
+              <p>₹{calculateTotal()}</p>
             </div>
             <hr />
             <div className="cart-total-details">
               <p>Canteeno Platform Fee</p>
-              <p>₹{getTotalCartAmount()===0?0:2}</p>
+              <p>₹{calculateTotal() === 0 ? 0 : 2}</p>
             </div>
             <hr />
             <div className="cart-total-details">
               <b>Total</b>
-              <b>₹{getTotalCartAmount()===0?0:getTotalCartAmount()+2}</b>
+              <b>₹{calculateTotal() === 0 ? 0 : calculateTotal() + 2}</b>
             </div>
           </div>
-          <button onClick={()=>navigate('/order')}>PROCEED TO CHECKOUT</button>
-        </div>
-        <div className="cart-promocode">
-          <div>
-            <p>If you have a promocode, Enter it here</p>
-            <div className="cart-promocode-input">
-              <input type="text" placeholder="promo code" />
-              <button>Submit</button>
-            </div>
-          </div>
+          <button onClick={() => navigate("/order")}>
+            PROCEED TO CHECKOUT
+          </button>
+          <button
+            className="clear-cart-btn"
+            onClick={clearCart}
+            style={{ backgroundColor: "#f44336", marginTop: "10px" }}
+          >
+            CLEAR CART
+          </button>
         </div>
       </div>
     </div>

@@ -29,7 +29,7 @@ const FoodItem = ({
 
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [notes, setNotes] = useState("");
-  
+
   // Simplified: displayPrice is always price (the ternary was redundant)
   const displayPrice = price;
   const showOriginalPrice = originalPrice && originalPrice > price;
