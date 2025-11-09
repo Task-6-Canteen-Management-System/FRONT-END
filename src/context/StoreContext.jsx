@@ -169,6 +169,7 @@ const StoreContextProvider = (props) => {
     fetchFoodList();
   }, []);
   
+  
   const contextValue = {
     url,
     food_list: foodList,
