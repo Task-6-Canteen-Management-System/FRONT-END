@@ -1,17 +1,37 @@
 import { createContext, useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
+import axios from "axios";
+import {
+  fetchPopularItems,
+  fetchSimilarItems,
+  fetchMenu, 
+} from "../config/recommendationApi";
+import { sendChatMessage, checkChatApiStatus } from "../config/chatApi";
 
 export const StoreContext = createContext(null);
 
-const StoreContextProvider = ({ children }) => {
-  // ===== State =====
-  const [food_list, setFoodList] = useState([]);
+const StoreContextProvider = (props) => {
+  const url = "https://ajay-cafe-1.onrender.com"; 
+
+  const [foodList, setFoodList] = useState([]); 
+  const [menuList, setMenuList] = useState([]); 
   const [cartItems, setCartItems] = useState({});
   const [token, setToken] = useState("");
-  const [userType, setUserType] = useState("user"); // "user" | "admin" | "customer"
+  const [userType, setUserType] = useState("user"); 
 
-  // ===== Menu =====
+  useEffect(() => {
+    const loadMenu = async () => {
+      const result = await fetchMenu();
+      if (result.success && result.data) {
+        setMenuList(result.data);
+        console.log("✅ Menu loaded from ML API:", result.data);
+      } else {
+        console.error("❌ Failed to load menu:", result.error);
+      }
+    };
+    loadMenu();
+  }, []);
+
   const fetchFoodList = async () => {
     try {
       const res = await axios.get("/api/foods/allFoods");
@@ -176,7 +196,8 @@ const StoreContextProvider = ({ children }) => {
 
   // ===== Context value =====
   const contextValue = {
-    food_list,
+    url,
+    food_list: menuList.length > 0 ? menuList : foodList, 
     cartItems,
     setCartItems,
 
@@ -196,8 +217,12 @@ const StoreContextProvider = ({ children }) => {
     setToken,
     userType,
     setUserType,
-
-    // cart preloader
+    fetchPopularItems,
+    fetchSimilarItems,
+    sendChatMessage,
+    checkChatApiStatus,
+    getTotalCartAmount,
+    getTotalCartItems,
     loadCardData,
   };
 

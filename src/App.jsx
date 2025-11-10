@@ -11,6 +11,10 @@ import LoginPopup from "./components/LoginPopup/LoginPopup";
 import ChatWidget from "./components/ChatWidget/ChatWidget";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+import Home from "./pages/Home/Home";
+import Cart from "./pages/Cart/Cart";
+import PlaceOrder from "./pages/PlaceOrder/PlaceOrder";
 import Verify from "./pages/Verify/Verify";
 import MyOrders from "./pages/MyOrders/MyOrders";
 import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
@@ -54,6 +58,7 @@ const App = () => {
       <Navbar setShowLogin={setShowLogin} />
       <div className="app">
         <ToastContainer />
+
         <Routes>
           {/* Public */}
           <Route path="/" element={<Home />} />
@@ -114,6 +119,7 @@ const App = () => {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
+
       <Footer />
       <ChatWidget />
     </>

@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -27,7 +26,6 @@ export default defineConfig({
         target: 'https://ajay-cafe-1.onrender.com',
         changeOrigin: true,
         secure: true,
-        // Added simple logging so you can see it working
         configure: (proxy, _options) => {
           proxy.on('proxyReq', (proxyReq, req, _res) => {
             console.log('Sending Canteen API Request:', req.method, req.url);

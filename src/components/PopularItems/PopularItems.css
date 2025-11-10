@@ -135,3 +135,15 @@
   }
 }
 
+.popular-item-add-btn.disabled {
+  background: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.popular-item-add-btn.disabled:hover {
+  background: #ccc;
+  transform: none;
+}
+
+
