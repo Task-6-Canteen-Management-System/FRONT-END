@@ -1,0 +1,84 @@
+.similar-items-section {
+  margin-top: 3rem;
+  padding: 1.5rem;
+  background-color: #f9fafb;
+  border-radius: 1rem;
+}
+
+.similar-items-section h2 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 1.2rem;
+  text-align: center;
+}
+
+.similar-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.25rem;
+}
+
+.similar-item-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  transition: transform 0.2s ease-in-out;
+}
+
+.similar-item-card:hover {
+  transform: translateY(-4px);
+}
+
+.similar-item-name {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.similar-item-price {
+  font-size: 0.95rem;
+  color: #16a34a;
+  margin-bottom: 0.75rem;
+}
+
+.similar-item-add-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.similar-item-add-btn:hover {
+  background-color: #dc2626;
+}
+
+.similar-item-add-btn.disabled {
+  background: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.similar-item-add-btn.disabled:hover {
+  background: #ccc;
+  transform: none;
+}
+
+.similar-items-section .error {
+  color: #dc2626;
+  text-align: center;
+  padding: 1rem;
+  background-color: #fee2e2;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+}
+
+.similar-items-section p {
+  text-align: center;
+  color: #666;
+  padding: 1rem;
+}

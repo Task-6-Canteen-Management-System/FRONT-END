@@ -32,7 +32,6 @@
   font-size: 18px;
 }
 
-/* Stats Cards */
 .admin-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -87,7 +86,6 @@
   font-weight: 500;
 }
 
-/* Filter Tabs */
 .admin-filter-tabs {
   display: flex;
   gap: 10px;
@@ -123,7 +121,6 @@
   border-color: #D96F32;
 }
 
-/* Orders Container */
 .admin-orders-container {
   margin-top: 20px;
 }
@@ -148,7 +145,6 @@
   margin: 0;
 }
 
-/* Order Card */
 .order-card {
   background: white;
   border-radius: 12px;
@@ -330,7 +326,6 @@
   width: 100%;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .admin-dashboard {
     padding: 20px 15px;

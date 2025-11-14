@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import "./AdminDashboard.css";
 import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
@@ -6,61 +6,80 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
-  const { url, token, userType } = useContext(StoreContext);
+  const { token, userType } = useContext(StoreContext);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("all");
   const navigate = useNavigate();
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
+    if (!token) return;
+
     try {
-      const response = await axios.get(url + "/api/order/all", { headers: { token } });
-      if (response.data.success) {
-        const sortedOrders = response.data.data.sort(
+      setLoading(true);
+      // ✅ Correct endpoint
+      const res = await axios.get("/api/order/allOrders", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.data?.success && Array.isArray(res.data.data)) {
+        const sorted = [...res.data.data].sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
-        setOrders(sortedOrders);
+        setOrders(sorted);
       } else {
-        toast.error(response.data.message || "Failed to fetch orders");
+        toast.error(res.data?.message || "Failed to fetch orders");
       }
-    } catch (error) {
-      console.error("Error fetching orders:", error);
+    } catch (err) {
+      console.error("Error fetching orders:", err?.response || err);
       toast.error("Failed to fetch orders");
-      navigate("/");
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   const updateOrderStatus = async (orderId, newStatus) => {
-    try {
-      const response = await axios.post(
-        url + "/api/order/update-status",
-        { orderId, status: newStatus },
-        { headers: { token } }
-      );
-      if (response.data.success) {
-        toast.success(`Order marked as ${newStatus}`);
-        setOrders(prev =>
-          prev.map(order =>
-            order._id === orderId ? { ...order, status: newStatus } : order
-          )
-        );
-      } else {
-        toast.error(response.data.message || "Failed to update order status");
+    if (!token) return;
+
+    const headers = { Authorization: `Bearer ${token}` };
+    const candidates = [
+      { method: "post", url: `/api/order/status/${orderId}`, body: { status: newStatus } },
+      { method: "put",  url: `/api/order/status/${orderId}`, body: { status: newStatus } },
+      { method: "patch",url: `/api/order/status/${orderId}`, body: { status: newStatus } },
+      { method: "put",  url: `/api/order/update/${orderId}`, body: { status: newStatus } },
+      { method: "patch",url: `/api/order/${orderId}/status`, body: { status: newStatus } },
+    ];
+
+    let lastError = null;
+    for (const c of candidates) {
+      try {
+        const res = await axios[c.method](c.url, c.body, { headers });
+        if (res.data?.success) {
+          toast.success(`Order marked as ${newStatus}`);
+          setOrders((prev) =>
+            prev.map((o) => (o._id === orderId ? { ...o, status: newStatus } : o))
+          );
+          return;
+        }
+        lastError = res?.data?.message || `Failed with ${c.method.toUpperCase()} ${c.url}`;
+      } catch (err) {
+        lastError = err?.response?.data?.message || err?.message;
+        // try the next shape
+        continue;
       }
-    } catch (error) {
-      toast.error("Failed to update order status");
     }
+    console.error("Update status error:", lastError);
+    toast.error(lastError || "Failed to update order status");
   };
 
   const handleStatusChange = (orderId, currentStatus) => {
+    const s = (currentStatus || "").toLowerCase();
     const next =
-      currentStatus === "pending" || currentStatus === "order placed"
+      s === "pending" || s === "order placed"
         ? "accepted"
-        : currentStatus === "accepted"
+        : s === "accepted"
         ? "preparing"
-        : currentStatus === "preparing"
+        : s === "preparing"
         ? "ready"
         : null;
 
@@ -68,96 +87,141 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
-    if (!token || userType !== "admin") {
-      navigate("/");
-      return;
-    }
-    fetchOrders();
-    const interval = setInterval(fetchOrders, 5000);
-    return () => clearInterval(interval);
-  }, [token, userType, navigate]);
+    if (!token) return navigate("/");
+    if (userType !== "admin") return navigate("/");
 
-  const filteredOrders = orders.filter(order => {
+    fetchOrders();
+    const id = setInterval(fetchOrders, 5000); // auto-refresh
+    return () => clearInterval(id);
+  }, [token, userType, navigate, fetchOrders]);
+
+  const filteredOrders = orders.filter((order) => {
     if (filterStatus === "all") return true;
-    const status = order.status?.toLowerCase() || "pending";
+    const s = (order.status || "pending").toLowerCase();
     if (filterStatus === "pending") {
-      return status === "pending" || status === "order placed";
+      return s === "pending" || s === "order placed";
     }
-    return status === filterStatus;
+    return s === filterStatus;
   });
 
-  if (loading) return <div className="admin-dashboard"><p>Loading orders...</p></div>;
+  if (loading) {
+    return (
+      <div className="admin-dashboard">
+        <p>Loading orders...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-dashboard">
       <h1>📊 Order Management Dashboard</h1>
 
       <div className="admin-filter-tabs">
-        {["all", "pending", "accepted", "preparing", "ready"].map(s => (
-          <button key={s} className={filterStatus === s ? "active" : ""} onClick={() => setFilterStatus(s)}>
-            {s.charAt(0).toUpperCase() + s.slice(1)} ({orders.filter(o => 
-              (o.status?.toLowerCase() || "pending") === s || 
-              (s === "pending" && (o.status?.toLowerCase() === "order placed"))
-            ).length})
+        {["all", "pending", "accepted", "preparing", "ready"].map((s) => (
+          <button
+            key={s}
+            className={filterStatus === s ? "active" : ""}
+            onClick={() => setFilterStatus(s)}
+          >
+            {s.charAt(0).toUpperCase() + s.slice(1)} (
+            {
+              orders.filter((o) => {
+                const st = (o.status || "pending").toLowerCase();
+                return (
+                  st === s ||
+                  (s === "pending" &&
+                    (st === "order placed" || st === "pending"))
+                );
+              }).length
+            }
+            )
           </button>
         ))}
+        <button className="refresh-btn" onClick={fetchOrders} title="Refresh">
+          ⟳
+        </button>
       </div>
 
       <div className="orders-grid">
         {filteredOrders.length > 0 ? (
-          filteredOrders.map(order => (
-            <OrderCard key={order._id} order={order} onStatusChange={handleStatusChange} />
+          filteredOrders.map((order) => (
+            <OrderCard
+              key={order._id}
+              order={order}
+              onStatusChange={handleStatusChange}
+            />
           ))
         ) : (
-          <p>No orders here.</p>
+          <p>No orders in this category.</p>
         )}
       </div>
     </div>
   );
 };
 
-// ✅ Simplified OrderCard (NO Delivery Info)
 const OrderCard = ({ order, onStatusChange }) => {
-  const status = order.status?.toLowerCase() || "pending";
+  const status = (order.status || "pending").toLowerCase();
   const isPending = status === "pending" || status === "order placed";
   const isAccepted = status === "accepted";
   const isPreparing = status === "preparing";
   const isReady = status === "ready";
 
-  const getStatusColor = () =>
-    isPending ? "#ef4444" :
-    isAccepted ? "#f59e0b" :
-    isPreparing ? "#3b82f6" :
-    isReady ? "#10b981" : "#6b7280";
+  const color = isPending
+    ? "#ef4444"
+    : isAccepted
+    ? "#f59e0b"
+    : isPreparing
+    ? "#3b82f6"
+    : isReady
+    ? "#10b981"
+    : "#6b7280";
 
-  const nextAction =
-    isPending ? "Accept Order" :
-    isAccepted ? "Mark Preparing" :
-    isPreparing ? "Mark Ready" :
-    null;
+  const nextAction = isPending
+    ? "Accept Order"
+    : isAccepted
+    ? "Mark Preparing"
+    : isPreparing
+    ? "Mark Ready"
+    : null;
+
+  // ✅ Backend returns items[].food object + totalAmount
+  const items = Array.isArray(order.items) ? order.items : [];
+  const getName = (it) => it?.food?.name || it?.name || "Item";
+  const getQty = (it) => Number(it?.quantity || 0);
 
   return (
-    <div className="order-card" style={{ borderLeft: `4px solid ${getStatusColor()}` }}>
+    <div className="order-card" style={{ borderLeft: `4px solid ${color}` }}>
       <div className="order-header">
-        <strong>Order #{order._id.slice(-6)}</strong>
-        <span className="status" style={{ color: getStatusColor() }}>{order.status || "Pending"}</span>
+        <strong>Order #{String(order._id).slice(-6)}</strong>
+        <span className="status" style={{ color }}>
+          {order.status || "Pending"}
+        </span>
       </div>
 
-      <p><strong>Total:</strong> ₹{order.amount}</p>
-      <p><strong>Time:</strong> {new Date(order.createdAt).toLocaleString()}</p>
+      <p>
+        <strong>Total:</strong> ₹{order.totalAmount ?? 0}
+      </p>
+      <p>
+        <strong>Time:</strong>{" "}
+        {order.createdAt ? new Date(order.createdAt).toLocaleString() : "-"}
+      </p>
 
       <div className="order-items">
         <strong>Items:</strong>
-        {order.items?.map((item, index) => (
-          <div key={index} className="item-row">
-            <span>{item.name}</span>
-            <span>x{item.quantity}</span>
+        {items.map((it, i) => (
+          <div key={i} className="item-row">
+            <span>{getName(it)}</span>
+            <span>x{getQty(it)}</span>
           </div>
         ))}
       </div>
 
       {nextAction && (
-        <button className="status-btn" onClick={() => onStatusChange(order._id, status)} style={{ background: getStatusColor() }}>
+        <button
+          className="status-btn"
+          onClick={() => onStatusChange(order._id, status)}
+          style={{ background: color }}
+        >
           {nextAction}
         </button>
       )}

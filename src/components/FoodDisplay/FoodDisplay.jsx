@@ -6,13 +6,10 @@ import FoodItem from "../FoodItem/FoodItem";
 const FoodDisplay = ({ category, searchQuery = "" }) => {
   const { food_list } = useContext(StoreContext);
   
-  // Filter items based on category and search query
   const filteredItems = useMemo(() => {
     return food_list.filter((item) => {
-      // Category filter
       const matchesCategory = category === "All" || category === item.category;
       
-      // Search filter - search by name (case-insensitive)
       const matchesSearch = searchQuery === "" || 
         (item.name && item.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()));

@@ -1,79 +1,3 @@
-.floating-cart-icon {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 60px;
-  height: 60px;
-  background-color: #D96F32;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  transition: all 0.3s ease;
-  animation: fadeIn 0.5s ease-in;
-}
-
-.floating-cart-icon:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
-}
-
-.floating-cart-icon img {
-  width: 32px;
-  height: 32px;
-  filter: brightness(0) invert(1);
-}
-
-.floating-cart-icon .cart-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background-color: white;
-  color: #D96F32;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  border: 2px solid #D96F32;
-  animation: bounce 0.5s ease-in;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.3);
-  }
-}
-
-@media (max-width: 768px) {
-  .floating-cart-icon {
-    width: 55px;
-    height: 55px;
-    bottom: 20px;
-    right: 20px;
-  }
-  
-  .floating-cart-icon img {
-    width: 28px;
-    height: 28px;
-  }
-  
-  .floating-cart-icon .cart-badge {
-    width: 22px;
-    height: 22px;
-    font-size: 11px;
-  }
-}
-
 .popular-items-section {
   margin: 40px 0;
   padding: 20px;
@@ -184,54 +108,15 @@
   transform: scale(0.98);
 }
 
-.loading {
+.loading,
+.error {
   text-align: center;
   padding: 40px;
   color: #666;
 }
 
-.recommendation-error {
-  text-align: center;
-  padding: 40px;
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 8px;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.error-message {
-  color: #856404;
-  font-size: 1rem;
-  margin-bottom: 10px;
-  font-weight: 500;
-}
-
-.error-submessage {
-  color: #856404;
-  font-size: 0.9rem;
-  margin-bottom: 20px;
-  opacity: 0.8;
-}
-
-.retry-btn {
-  background: #ff6b6b;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: background 0.2s;
-}
-
-.retry-btn:hover {
-  background: #ff5252;
-}
-
-.retry-btn:active {
-  transform: scale(0.98);
+.error {
+  color: #ff6b6b;
 }
 
 @media (max-width: 768px) {
@@ -248,6 +133,17 @@
     width: 100%;
     margin-top: 15px;
   }
+}
+
+.popular-item-add-btn.disabled {
+  background: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.popular-item-add-btn.disabled:hover {
+  background: #ccc;
+  transform: none;
 }
 
 

@@ -194,7 +194,6 @@
     list-style: none;
 }
 
-/* Add a bridge area to maintain hover state when moving to dropdown */
 .nav-profile-dropdown::before{
     content: '';
     position: absolute;

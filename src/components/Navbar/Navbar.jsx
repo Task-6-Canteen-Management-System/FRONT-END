@@ -7,16 +7,17 @@ import { toast } from "react-toastify";
 
 const Navbar = ({ setShowLogin }) => {
   const [menu, setMenu] = useState("home");
-  const { getTotalCartAmount, token, setToken, userType } = useContext(StoreContext);
-  const navigate=useNavigate();
+  const { getTotalCartAmount, token, setToken, userType } =
+    useContext(StoreContext);
+  const navigate = useNavigate();
 
-  const logout=()=>{
+  const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userType");
     setToken("");
-    toast.success("Logout Successfully")
+    toast.success("Logout Successfully");
     navigate("/");
-  }
+  };
   return (
     <div className="navbar">
       <div className="navbar-content">
@@ -25,9 +26,11 @@ const Navbar = ({ setShowLogin }) => {
           onClick={(e) => {
             e.preventDefault();
             setMenu("home");
-            // Use replace and add timestamp to force reset even when already on home page
-            navigate("/?reset=" + Date.now(), { replace: true, state: { resetCategory: true } });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            navigate("/?reset=" + Date.now(), {
+              replace: true,
+              state: { resetCategory: true },
+            });
+            window.scrollTo({ top: 0, behavior: "smooth" });
           }}
         >
           <img src={assets.logo} alt="" className="logo" />
@@ -38,9 +41,11 @@ const Navbar = ({ setShowLogin }) => {
             onClick={(e) => {
               e.preventDefault();
               setMenu("home");
-              // Use replace and add timestamp to force reset even when already on home page
-              navigate("/?reset=" + Date.now(), { replace: true, state: { resetCategory: true } });
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              navigate("/?reset=" + Date.now(), {
+                replace: true,
+                state: { resetCategory: true },
+              });
+              window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             className={menu === "home" ? "active" : ""}
           >
@@ -69,7 +74,6 @@ const Navbar = ({ setShowLogin }) => {
           </a>
         </ul>
         <div className="navbar-right">
-          {/* <img src={assets.search_icon} alt="" /> */}
           <div className="navbar-search-icon">
             <Link to="/cart">
               <img src={assets.basket_icon} alt="" />
@@ -84,15 +88,27 @@ const Navbar = ({ setShowLogin }) => {
               <ul className="nav-profile-dropdown">
                 {userType === "admin" ? (
                   <>
-                    <li onClick={()=>navigate("/admin/dashboard")}><img src={assets.bag_icon} alt="" /><p>Admin Dashboard</p></li>
+                    <li onClick={() => navigate("/admin/dashboard")}>
+                      <img src={assets.bag_icon} alt="" />
+                      <p>Admin Dashboard</p>
+                    </li>
                     <hr />
-                    <li onClick={logout}><img src={assets.logout_icon} alt="" /><p>Logout</p></li>
+                    <li onClick={logout}>
+                      <img src={assets.logout_icon} alt="" />
+                      <p>Logout</p>
+                    </li>
                   </>
                 ) : (
                   <>
-                    <li onClick={()=>navigate("/myorders")}><img src={assets.bag_icon} alt="" /><p>Orders</p></li>
+                    <li onClick={() => navigate("/myorders")}>
+                      <img src={assets.bag_icon} alt="" />
+                      <p>Orders</p>
+                    </li>
                     <hr />
-                    <li onClick={logout}><img src={assets.logout_icon} alt="" /><p>Logout</p></li>
+                    <li onClick={logout}>
+                      <img src={assets.logout_icon} alt="" />
+                      <p>Logout</p>
+                    </li>
                   </>
                 )}
               </ul>
