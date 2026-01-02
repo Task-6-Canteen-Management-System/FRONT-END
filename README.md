@@ -338,7 +338,7 @@ We welcome contributions! Please follow these steps:
         <sub><b>Amresh Chaurasiya</b></sub>
       </a>
       <br />
-      <sub>Project Lead & Full Stack Developer</sub>
+      <sub>Project Lead & Backend Developer</sub>
     </td>
     <td align="center">
       <a href="https://github.com/anirudhagarwal-dev">
