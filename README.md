@@ -335,7 +335,7 @@ We welcome contributions! Please follow these steps:
       <a href="https://github.com/Amresh-01">
         <img src="https://github.com/Amresh-01.png" width="100px;" alt="Amresh"/>
         <br />
-        <sub><b>Amresh Kumar</b></sub>
+        <sub><b>Amresh Chaurasiya</b></sub>
       </a>
       <br />
       <sub>Project Lead & Full Stack Developer</sub>
@@ -347,7 +347,7 @@ We welcome contributions! Please follow these steps:
         <sub><b>Anirudh Agarwal</b></sub>
       </a>
       <br />
-      <sub>Backend Developer</sub>
+      <sub>Frontend Developer</sub>
     </td>
     <td align="center">
       <a href="https://github.com/adityagaur2620-netizen">
@@ -365,7 +365,7 @@ We welcome contributions! Please follow these steps:
         <sub><b>Vaibhav Shukla</b></sub>
       </a>
       <br />
-      <sub>UI/UX Designer</sub>
+      <sub>UI/UX Designer and Frontend Developer</sub>
     </td>
     <td align="center">
       <a href="https://github.com/UtkarshSingh-creater">
@@ -374,7 +374,7 @@ We welcome contributions! Please follow these steps:
         <sub><b>Utkarsh Singh</b></sub>
       </a>
       <br />
-      <sub>Database Architect</sub>
+      <sub>UI/UX Designer and Frontend Developer<</sub>
     </td>
   </tr>
 </table>
