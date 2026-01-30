@@ -11,24 +11,12 @@ const PlaceOrder = () => {
   const { getTotalCartAmount, token, food_list, getCartQuantity } =
     useContext(StoreContext);
 
-  const [orderCount, setOrderCount] = useState(0);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
   const [tableNumber, setTableNumber] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
 
-  const fetchOrderCount = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/order/allOrders`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.data.success) setOrderCount(response.data.data.length);
-    } catch (error) {
-      console.log("Could not fetch previous orders");
-    }
-  };
-
+  // Build formatted items
   const buildOrderItems = () => {
     let orderItems = [];
     food_list.forEach((item) => {
@@ -38,18 +26,17 @@ const PlaceOrder = () => {
     return orderItems;
   };
 
+  // Create Razorpay order on backend
   const createBackendOrder = async () => {
     const res = await axios.post(
       `${API_BASE_URL}/payment/create`,
       {
         amount: getTotalCartAmount() + 2,
       },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
+      { headers: { Authorization: `Bearer ${token}` } },
     );
 
-    return res.data.data;
+    return res.data.data; // { order, payment }
   };
 
   const handleUPIPayment = async (event) => {
@@ -58,7 +45,6 @@ const PlaceOrder = () => {
     if (!tableNumber) return toast.error("Please enter a table number");
 
     const orderData = await createBackendOrder();
-
     const razorpayOrder = orderData.order;
 
     const options = {
@@ -83,7 +69,7 @@ const PlaceOrder = () => {
         );
 
         if (verify.data.success) {
-          await placeFinalOrder("upi"); 
+          placeFinalOrder("upi"); // 🎉 Correct!
         } else {
           toast.error("Payment verification failed");
         }
@@ -92,10 +78,10 @@ const PlaceOrder = () => {
       theme: { color: "#D96F32" },
     };
 
-    const paymentObject = new window.Razorpay(options);
-    paymentObject.open();
+    new window.Razorpay(options).open();
   };
 
+  // Create final order in your backend
   const placeFinalOrder = async (method) => {
     const orderItems = buildOrderItems();
 
@@ -113,7 +99,6 @@ const PlaceOrder = () => {
       if (res.data.success) {
         setOrderId(res.data.data._id);
         setOrderPlaced(true);
-        toast.success("Order placed successfully!");
       }
     } catch (error) {
       toast.error("Error placing final order");
@@ -123,16 +108,10 @@ const PlaceOrder = () => {
   const placeOrder = async (event) => {
     event.preventDefault();
 
-    if (paymentMethod === "upi") {
-      return handleUPIPayment(event);
-    }
+    if (paymentMethod === "upi") return handleUPIPayment(event);
 
     return placeFinalOrder("cash");
   };
-
-  useEffect(() => {
-    if (token) fetchOrderCount();
-  }, [token]);
 
   // SUCCESS SCREEN
   if (orderPlaced) {
@@ -142,9 +121,11 @@ const PlaceOrder = () => {
           <div className="cart-total">
             <h2>Order Confirmed ✅</h2>
             <p>Order ID: {orderId}</p>
+
             <p className="payment-instruction">
               Please wait while we prepare your food 🍽️
             </p>
+
             <button
               type="button"
               className="back-to-orders-btn"
