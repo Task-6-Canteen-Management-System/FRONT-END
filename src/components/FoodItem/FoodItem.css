@@ -66,7 +66,6 @@
     white-space: nowrap;
 }
 
-/* Special dish styling */
 .food-item.special-dish-item{
     border: 2px solid #D96F32;
     box-shadow: 0px 0px 20px rgba(217, 111, 50, 0.3);
@@ -141,7 +140,6 @@
     background-color: rgba(217, 111, 50, 0.1);
 }
 
-/* Notes Modal Styles */
 .notes-modal-overlay{
     position: fixed;
     top: 0;

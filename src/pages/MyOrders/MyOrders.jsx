@@ -39,6 +39,7 @@ const MyOrders = () => {
   return (
     <div className="my-orders">
       <h2>Orders</h2>
+      
 
       {/* 🎉 Loyalty Section */}
       <div className="loyalty-program">

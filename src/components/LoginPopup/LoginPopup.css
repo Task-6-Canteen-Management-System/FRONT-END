@@ -1,118 +1,189 @@
-.login-popup{
-    position: absolute;
-    z-index: 1;
-    width: 100%;
-    height: 100%;
-    background-color: #00000090;
-    display: grid; 
-}
-.login-popup-container{
-    place-self: center;
-    width:max(23vw,330px);
-    color: #808080;
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    padding: 25px 30px;
-    border-radius: 8px;
-    font-size: 14px;
-    animation: fadeIn 0.5s;
-
-}
-.login-popup-title{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: black;
-}
-.login-popup-title img{
-    width: 16px;
-    cursor: pointer;
-}
-.login-popup-inputs{
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-.login-popup-inputs input{
-    outline: none;
-    border: 1px solid #c9c9c9;
-    padding: 10px;
-    border-radius: 4px;
-}
-.login-popup-container button{
-    border: none;
-    padding: 10px;
-    border-radius: 4px;
-    color: white;
-    background-color: #D96F32;
-    font-size: 15px;
-    cursor: pointer;
-}
-.login-popup-condition{
-    display: flex;
-    align-items: start;
-    gap: 8px;
-    margin-top: -15px;
-}
-.login-popup-condition input{
-    margin-top: 5px;
-}
-.login-popup p span{
-    color: #D96F32;
-    font-weight: 500;
-    cursor: pointer;
+.login-popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
 }
 
-/* Admin mode - blue color for links */
-.login-popup-container.admin-mode p span{
-    color: #2563eb;
-}
-.login-popup-user-type{
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-.login-popup-user-type button{
-    flex: 1;
-    padding: 10px;
-    border: 2px solid #e5e7eb;
-    background-color: white;
-    color: #6b7280;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-.login-popup-user-type button:hover{
-    border-color: #D96F32;
-    color: #D96F32;
-}
-.login-popup-user-type button.active{
-    border-color: #D96F32;
-    background-color: #D96F32;
-    color: white;
+.login-popup-container {
+  background: #fff;
+  border-radius: 20px;
+  width: 380px;
+  padding: 30px 25px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  position: relative;
+  animation: slideUp 0.3s ease;
 }
 
-/* Admin button active state - blue */
-.login-popup-user-type button:nth-child(2).active{
-    border-color: #2563eb;
-    background-color: #2563eb;
-    color: white;
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
-.login-popup-user-type button:nth-child(2):hover{
-    border-color: #2563eb;
-    color: #2563eb;
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #444;
+  transition: 0.2s;
 }
 
-/* Admin login button - blue */
-.login-popup-container button.admin-login-btn{
-    background-color: #2563eb;
+.close-btn:hover {
+  color: #e63946;
 }
 
-.login-popup-container button.admin-login-btn:hover{
-    background-color: #1d4ed8;
+h2 {
+  text-align: center;
+  margin-bottom: 18px;
+  color: #222;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-form input {
+  padding: 10px 12px;
+  font-size: 15px;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  transition: border 0.3s, box-shadow 0.3s;
+}
+
+.login-form input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+/* ✅ Role Dropdown Section */
+.role-select {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.role-select label {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.role-select select {
+  padding: 9px 12px;
+  font-size: 15px;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+  outline: none;
+  cursor: pointer;
+  transition: border 0.3s, box-shadow 0.3s;
+}
+
+.role-select select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+}
+
+/* ✅ Submit Button */
+.btn-submit {
+  margin-top: 6px;
+  padding: 10px 0;
+  font-size: 16px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-submit:hover {
+  background-color: #0056b3;
+}
+
+/* ✅ Divider */
+.divider {
+  text-align: center;
+  margin: 16px 0;
+  font-size: 14px;
+  color: #666;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background-color: #ccc;
+}
+
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}
+
+/* ✅ Google Button */
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 0;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.google-btn:hover {
+  background-color: #f6f6f6;
+}
+
+/* ✅ Toggle Text (switch login/signup) */
+.toggle-text {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 14px;
+  color: #444;
+}
+
+.toggle-text span {
+  color: #007bff;
+  cursor: pointer;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+.toggle-text span:hover {
+  color: #0056b3;
 }

@@ -8,18 +8,23 @@
 }
 
 .special-dish-section::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -50%;
   right: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(217, 111, 50, 0.1) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(217, 111, 50, 0.1) 0%,
+    transparent 70%
+  );
   animation: pulse 3s ease-in-out infinite;
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.5;
     transform: scale(1);
   }
@@ -50,7 +55,8 @@
 }
 
 @keyframes bounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -61,7 +67,7 @@
 .special-dish-badge h2 {
   font-size: 32px;
   font-weight: 700;
-  color: #D96F32;
+  color: #d96f32;
   margin: 0;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -97,7 +103,7 @@
   justify-content: center;
   gap: 10px;
   padding: 20px;
-  background: linear-gradient(135deg, #D96F32 0%, #c56023 100%);
+  background: linear-gradient(135deg, #d96f32 0%, #c56023 100%);
   border-radius: 15px;
   box-shadow: 0px 8px 20px rgba(217, 111, 50, 0.3);
   color: white;
