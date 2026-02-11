@@ -1,10 +1,15 @@
-# 🍽️ Canteeno - Smart College Canteen Management System
+# 🍔 Canteeno - Canteen Management System
 
-[![Frontend](https://img.shields.io/badge/Frontend-React-61DAFB?logo=react)](https://reactjs.org/)
-[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?logo=javascript&logoColor=black)](https://www.javascript.com/)
-[![CSS3](https://img.shields.io/badge/CSS3-Styled-1572B6?logo=css3)](https://www.w3.org/Style/CSS/)
-[![Netlify](https://img.shields.io/badge/Deployed%20on-Netlify-00C7B7?logo=netlify)](https://www.netlify.com/)
-[![Contributors](https://img.shields.io/badge/Contributors-5-orange)](https://github.com/Amresh-01/Canteeno-Frontend/graphs/contributors)
+<p align="center">
+
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![CSS3](https://img.shields.io/badge/CSS3-Styling-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+[![Netlify](https://img.shields.io/badge/Netlify-Deployment-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://www.netlify.com/)
+[![Contributors](https://img.shields.io/github/contributors/Smart-Canteen-System/FRONT-END?style=for-the-badge&color=orange)](https://github.com/Smart-Canteen-System/FRONT-END/graphs/contributors)
+
+</p>
+
 
 > **A modern, full-stack web application revolutionizing college canteen operations by eliminating long queues and enabling seamless pre-ordering with real-time order tracking.**
 
@@ -150,8 +155,7 @@ Git
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/Amresh-01/Canteeno-Frontend.git
-cd Canteeno-Frontend
+git clone https://github.com/Smart-Canteen-System/FRONT-END.git
 ```
 
 2. **Install dependencies**
@@ -181,21 +185,6 @@ npm run preview  # Preview production build locally
 
 ---
 
-## 📸 Screenshots
-
-### Student Dashboard
-![Student View](https://via.placeholder.com/800x400?text=Student+Dashboard)
-
-### Menu Browsing
-![Menu](https://via.placeholder.com/800x400?text=Digital+Menu)
-
-### Order Tracking
-![Order Tracking](https://via.placeholder.com/800x400?text=Real-Time+Order+Tracking)
-
-### Admin Analytics
-![Admin Dashboard](https://via.placeholder.com/800x400?text=Admin+Analytics+Dashboard)
-
----
 
 ## 📁 Project Structure
 
@@ -374,7 +363,7 @@ We welcome contributions! Please follow these steps:
         <sub><b>Utkarsh Singh</b></sub>
       </a>
       <br />
-      <sub>Frontend Developer<</sub>
+      <sub>Frontend Developer</sub>
     </td>
   </tr>
 </table>
@@ -407,7 +396,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Thanks to our college canteen management for supporting this initiative
 - Inspired by modern food delivery platforms
 - Special thanks to all contributors and testers
-- Built with ❤️ by students, for students
+- Built with 💛 by students, for students
 
 ---
 
@@ -415,14 +404,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 If you found this project helpful, please consider giving it a star ⭐️ on GitHub!
 
-[![GitHub Stars](https://img.shields.io/github/stars/Amresh-01/Canteeno-Frontend?style=social)](https://github.com/Amresh-01/Canteeno-Frontend/stargazers)
-
 ---
 
 <div align="center">
   
-**Made with 💙 to solve real campus problems**
+**Made with ❤️ to solve real campus problems**
 
-[Report Bug](https://github.com/Amresh-01/Canteeno-Frontend/issues) · [Request Feature](https://github.com/Amresh-01/Canteeno-Frontend/issues)
+[Report Bug](https://github.com/Smart-Canteen-System/FRONT-END/issues) · [Request Feature](https://github.com/Smart-Canteen-System/FRONT-END/issues)
 
 </div>
